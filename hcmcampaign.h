@@ -83,7 +83,7 @@ public:
     virtual void setEXP(int EXP) = 0;
     virtual bool isLiberationArmy() const = 0;
     virtual bool isARVN() const = 0;
-    UnitList* getUnitlist() const = 0;
+    virtual UnitList* getUnitlist() const = 0;
     void updateState(Unit** unitArray, int size);
     void updateState();
 
@@ -101,6 +101,9 @@ public:
     double calculateTotalPower(const vector<Unit*>& units);
     void mergeUnits(Unit* newUnit);
     void updateLFandEXP();
+    void setLF(int LF) override;
+    void setEXP(int EXP) override;
+    UnitList* getUnitlist() const override;
 };
 
 class ARVN : public Army {
@@ -110,6 +113,9 @@ public:
     string str() const override;
     bool isLiberationArmy() const override;
     bool isARVN() const override;
+    void setLF(int LF) override;
+    void setEXP(int EXP) override;
+    UnitList* getUnitlist() const override;
 };
 
 class Position
@@ -125,7 +131,7 @@ public:
     void setRow(int r);
     void setCol(int c);
     string str() const; // Example: returns "(1,15)"
-    static double distance(Position& a, Position& b);
+    static double distance(const Position& a, const Position& b);
 };
 
 class Unit
@@ -245,7 +251,7 @@ class BattleField
 private:
     int n_rows, n_cols;
     // TODO
-    TerrainElement*** terrain;
+    vector<vector<TerrainElement*>> terrain; 
 public:
     BattleField(int n_rows, int n_cols, vector<Position *> arrayForest,
                 vector<Position *> arrayRiver, vector<Position *> arrayFortification,
@@ -281,6 +287,10 @@ public:
     VehicleType getVehicleType() const override;
     bool isVehicleType() const override;
     bool isInfantryType() const override;
+    int getQuantity() const override;
+    int getWeight() const override;
+    void increaseQuantity(int num) override;
+    void setWeight(int w) override;
 };
 
 class Infantry : public Unit{
@@ -294,6 +304,10 @@ public:
     bool isVehicleType() const override;
     bool isInfantryType() const override;
     static bool isSquareNum(int n);
+    int getQuantity() const override;
+    int getWeight() const override;
+    void increaseQuantity(int num) override;
+    void setWeight(int w) override;
 };
 
 class Configuration {

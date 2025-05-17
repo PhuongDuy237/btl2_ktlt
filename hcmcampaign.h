@@ -186,7 +186,7 @@ class TerrainElement
 public:
     TerrainElement();
     ~TerrainElement();
-    virtual void getEffect(Army *army) = 0;
+    virtual void getEffect(Army *army);
     virtual string str() const = 0;
 };
 
@@ -250,6 +250,9 @@ public:
                 vector<Position *> arrayUrban, vector<Position *> arraySpecialZone);
     ~BattleField();
     string str() const;
+    TerrainElement getTerrain const;
+    int get_n_rows() const;
+    int get_n_cols() const;
 };
 
 class HCMCampaign
@@ -263,7 +266,7 @@ private:
 public:
     HCMCampaign(const string &config_file_path);
     void run();
-    string printResult();
+    string printResult() const;
 };
 
 class Vehicle : public Unit {
@@ -305,6 +308,16 @@ public:
     Configuration(const string& filepath);
     ~Configuration();
     string str() const;
+    int getNumRows() const;
+    int getNumCols() const;
+    int getEventCode() const;
+    vector<Position*> getArrayForest() const;
+    vector<Position*> getArrayRiver() const;
+    vector<Position*> getArrayFortification() const;
+    vector<Position*> getArrayUrban() const;
+    vector<Position*> getArraySpecialZone() const;
+    vector<Unit*> getLiberationUnits() const;
+    vector<Unit*> getARVNUnits() const;
 };
 
 #endif

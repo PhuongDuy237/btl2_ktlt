@@ -1033,6 +1033,18 @@ string BattleField::str() const {
 	return ss.str();
 }
 
+TerrainElement BattleFied::getTerrain() const {
+	return terrain;
+}
+
+int BattleField::get_n_rows() const {
+	return n_rows;
+}
+
+int BattleField::get_n_cols() const {
+	return n_cols;
+}
+
 //3.9 Thiet lap
 Configuration::Configuration(const string& filepath) {
 	num_rows = 0;
@@ -1280,7 +1292,166 @@ string Configuration::str() const {
 	return ss.str();
 }
 
+int Configuration::getNumRows() const {
+	return num_rows;
+}
+
+int Configuration::getNumCols() const {
+	return num_cols;
+}
+
+int Configuration::getEventCode() const {
+	return eventCode;
+}
+
+vector<Posititon*> Configuration::getArrayForest() const {
+	return arrayForest;
+}
+
+vector<Position*> Configuration::getArrayRiver() const {
+	return arrayRiver;
+}
+
+vector<Position*> Configuration::getArrayFortification() const {
+	return arrayFortification;
+}
+
+vector<Position*> Configuration::getArrayUrban() const {
+	return arrayUrban;
+}
+
+vector<Position*> Configuration::getArraySpecialZone() const {
+	return arraySpecialZone;
+}
+
+vector<Unit*> Configuration::getLiberationUnits() const {
+	return liberationUnits;
+}
+
+vector<Unit*> Configuration::getARVNUnits() const {
+	return ARVNUnits;
+}
+
 //3.10 class HCMcampaign
+HCMCampaign::HCMCampaign(const string& config_file_path) {
+	//khoi tao cau hinh
+	this->config = new Configuration(config_file_path);
+
+	//lay thong tin ban do - dia hinh
+	int n_rows = config->getNumRows();
+	int n_cols = config->getNumCols();
+	vector<Position*> arrayForest = config->getArrayForest();
+	vector<Position*> arrayRiver = config->getArrayRiver();
+	vector<Position*> arrayFortification = config->getArrayFortification();
+	vector<Position*> arrayUrban = config->getArrayUrban();
+	vector<Position*> arraySpecialZone = config->getArraySpecialZone();
+
+	//khoi tao BattleField
+	this->battleField = new BattleField(n_rows, n_cols, arrayForest, arrayRiver, arrayFortification, arrayUrban, arraySpecialZone);
+
+	//chuyen vecto <Unit*> sang Unit** -> de xu li
+	auto toPointerArray = [](const vector<Unit*>& vect)->Unit** {
+		if (vect.empty()) return nullptr;
+		Unit** arr = new Unit * [vect.size()];
+		for (size_t i = 0; i < vect.size(); ++i) {
+			arr[i] = vect[i];
+		}
+		return arr;
+	};
+
+	//lay cac don vi qsu
+	vector<Unit*> liberationUnits = config->getLiberationUnits();
+	vector<Unit*> ARVNUnits = config->getARVNUnits();
+
+	//chuyen sang mang 2 chieu
+	Unit** liberationArray = toPointerArray(liberationUnits);
+	Unit** ARVNArray = toPointerArray(ARVNUnits);
+
+	//khoi tao hai quan doi
+	this->liberationArmy = new LiberationArmy(liberationArray, liberationUnits.size(), "LiberationArmy", this->battleField);
+	this->ARVN = new ARVN(ARVNArray, ARVNUnits.size(), "ARVN", this->battleField);
+
+	delete[] liberationArray;
+	delete[] ARVNArray;
+}
+
+void HCMCampaign::run() {
+	int r = this->battleField->get_n_rows();
+	int c = this->battleField->get_n_cols();
+	TerrainElement*** terrain = this->battleField->getTerrain();
+
+	//ap dung hieu ung dia hinh
+	for (int i = 0; i < r; ++i) {
+		for (int j = 0; j < c; ++j) {
+			terrain[i][j]->getEffect(this->liberationArmy);
+			terrain[i][j]->getEffect(this->ARVN);
+		}
+	}
+
+	//cap nhat lai luc luong
+	liberationArmy->updateState();
+	ARVN->updateState();
+
+	//xu li evenCode
+	int eventCode = this->config->getEventCode();
+	if (eventCode < 75) {
+		liberationArmy->fight(ARVN, false);
+		ARVN->fight(liberationArmy, true);
+		ARVN->updateState();
+		liberationArmy->updateState();
+	}
+	else {
+		ARVN->fight(liberationArmy, false);
+		liberationArmy->fight(ARVN, true);
+
+		liberationArmy->updateState();
+		ARVN->updateState();
+
+		liberationArmy->fight(ARVN, false);
+		ARVN->updateState();
+		liberationArmy->updateState();
+	}
+
+	//xoa cac don vi yeu
+	auto removeWeakUnits = [](Army* army) {
+		Node* head = (army->getUnitlist()) ? army->getUnitlist()->getHead() : nullptr;
+		Node* prev = nullptr;
+		while (head) {
+			if (head->data->getAttackScore() <= 5) {
+				Node* toDelete = head;
+				if (!prev) {
+					head = head->next;
+					delete toDelete;
+					continue;
+				}
+				else {
+					prev->next = head->next;
+					head = head->next;
+					delete toDelete;
+					continue;
+				}
+			}
+			prev = head;
+			head = head->next;
+		}
+	};
+
+	removeWeakUnits(liberationArmy);
+	removeWeakUnits(ARVN);
+
+	//cap nhat trang thai
+	liberationArmy->updateState();
+	ARVN->updateState();
+}
+
+string HCMCampaign::printResult() const {
+	stringstream ss;
+	ss << "LIBERATIONARMY[LF=" << liberationArmy->getLF()
+		<< ",EXP=" << liberationArmy->getEXP() << "]"
+		<< "ARVN[LF=" << ARVN->getLF()
+		<< ",EXP=" << ARVN->getEXP() << "]";
+	return ss.str();
+}
 
 
 

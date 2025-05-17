@@ -84,7 +84,7 @@ public:
     virtual bool isLiberationArmy() const = 0;
     virtual bool isARVN() const = 0;
     UnitList* getUnitlist() const = 0;
-    void updateState(Unit** unitArray, int size) const = 0;
+    void updateState(Unit** unitArray, int size);
     void updateState();
 
 };
@@ -93,7 +93,7 @@ class LiberationArmy : public Army {
 public:
     LiberationArmy(const Unit** unitArray, int size, string name, BattleField* battleField);
     void fight(Army* enemy, bool defense = false) override;
-    string str() const = 0 override;
+    string str() const override;
     int increaseToNearestFibo(int n);
     bool isLiberationArmy() const override;
     bool isARVN() const override;
@@ -118,14 +118,14 @@ private:
     int r, c;
 
 public:
-    Position(int r = 0, int c = 0) const;
+    Position(int r = 0, int c = 0);
     Position(const string &str_pos); // Example: str_pos = "(1,15)"
     int getRow() const;
     int getCol() const;
     void setRow(int r);
     void setCol(int c);
     string str() const; // Example: returns "(1,15)"
-    double distance(Position a, Position b);
+    static double distance(Position& a, Position& b);
 };
 
 class Unit
@@ -135,9 +135,9 @@ protected:
     Position pos;
 
 public:
-    Unit(int quantity, int weight, Position pos);
+    Unit(int quantity, int weight, const Position &pos);
     virtual ~Unit();
-    virtual int getAttackScore() = 0;
+    virtual int getAttackScore() const = 0;
     Position getCurrentPosition() const;
     virtual string str() const = 0;
     virtual VehicleType getVehicleType() const { return TRUCK; }
@@ -145,6 +145,7 @@ public:
     virtual bool isInfantryType() const = 0;
     virtual bool isVehicleType() const = 0;
     virtual int getQuantity() const = 0;
+    virtual int getWeight() const = 0;
     virtual void increaseQuantity(int num) = 0;
     virtual void setQuantity(int q);
     virtual void setWeight(int w) = 0;
@@ -167,6 +168,7 @@ private:
     int amount;
 public:
     UnitList(int capacity);
+    ~UnitList();
     bool insert(Unit *unit);                   // return true if insert successfully
     bool isContain(VehicleType vehicleType);   // return true if it exists
     bool isContain(InfantryType infantryType); // return true if it exists
@@ -178,15 +180,15 @@ public:
     void setHead(Node* newHead);
     bool isUnitExist(Unit* unit);
     void remove(Unit* unit);
-    void add(Unit* unit)
+    void add(Unit* unit);
 };
 
 class TerrainElement
 {
 public:
     TerrainElement();
-    ~TerrainElement();
-    virtual void getEffect(Army *army);
+    virtual ~TerrainElement();
+    virtual void getEffect(Army *army) const = 0;
     virtual string str() const = 0;
 };
 
@@ -194,7 +196,7 @@ class Road : public TerrainElement {
 private:
     Position pos;
 public:
-    void getEffect(Army* army) const overide;
+    void getEffect(Army* army) const override;
     string str() const override;
 };
 
@@ -202,7 +204,7 @@ class Mountain : public TerrainElement {
 private: 
     Position pos;
 public:
-    void getEffect(Army* army) const override = 0;
+    void getEffect(Army* army) const override;
     string str() const override;
 };
 
@@ -210,7 +212,7 @@ class River : public TerrainElement {
 private:
     Position pos;
 public:
-    void getEffect(Army* army) const override = 0;
+    void getEffect(Army* army) const override;
     string str() const override;
 };
 
@@ -218,23 +220,23 @@ class Urban : public TerrainElement {
 private:
     Position pos;
 public:
-    void getEffect(Army* army) const override = 0;
-    string str() const override = 0;
+    void getEffect(Army* army) const override;
+    string str() const override;
 };
 
 class Fortification : public TerrainElement {
 private:
     Position pos;
 public:
-    void getEffect(Army* army) const override = 0;
-    string str() const override = 0;
+    void getEffect(Army* army) const override;
+    string str() const override;
 };
 
 class SpecialZone : public TerrainElement {
 private:
     Position pos;
 public:
-    void getEffect(Army* army) const override = 0;
+    void getEffect(Army* army) const override;
     string str() const override;
 };
 
@@ -250,7 +252,7 @@ public:
                 vector<Position *> arrayUrban, vector<Position *> arraySpecialZone);
     ~BattleField();
     string str() const;
-    TerrainElement getTerrain const;
+    TerrainElement*** getTerrain() const;
     int get_n_rows() const;
     int get_n_cols() const;
 };
@@ -261,7 +263,7 @@ private:
     Configuration *config;
     BattleField *battleField;
     LiberationArmy *liberationArmy;
-    ARVN *ARVN;
+    ARVN *arvn;
 
 public:
     HCMCampaign(const string &config_file_path);
@@ -273,8 +275,8 @@ class Vehicle : public Unit {
 private:
     VehicleType vehicleType;
 public:
-    Vehicle(int quantity, int weight, const Position pos, VehicleType vehicleType);
-    int getAttackScore() override;
+    Vehicle(int quantity, int weight, const Position &pos, VehicleType vehicleType);
+    int getAttackScore() const override;
     string str() const override;
     VehicleType getVehicleType() const override;
     bool isVehicleType() const override;
@@ -285,12 +287,13 @@ class Infantry : public Unit{
 private:
     InfantryType infantryType;
 public:
-    Infantry(int quantity, int weight, const Position pos, InfantryType infantryType);
-    int getAttackScore() override;
+    Infantry(int quantity, int weight, const Position &pos, InfantryType infantryType);
+    int getAttackScore() const override;
     string str() const override;
     InfantryType getInfantryType() const override;
     bool isVehicleType() const override;
     bool isInfantryType() const override;
+    static bool isSquareNum(int n);
 };
 
 class Configuration {

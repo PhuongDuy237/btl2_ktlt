@@ -116,6 +116,22 @@ bool Vehicle::isInfantryType() const {
 	return false;
 }
 
+int Vehicle::getQuantity() const override {
+	return quantity; 
+}
+
+int Vehicle:: getWeight() const override {
+	return weight;
+}
+
+void Vehicle::increaseQuantity(int num) override { 
+	if (num >= 0) quantity += num; 
+}
+
+void Vehicle::setWeight(int w) override { 
+	weight = w; 
+}
+
 //Bai 3.3 Luc luong bo binh
 static bool Infantry::isSquareNum(int n) {
 	int sqrtn = (int)sqrt(n);
@@ -174,6 +190,22 @@ string Infantry::str() const {
 	ss << "Infantry[infantryType=" << infantryTypeNames[static_cast<int>(infantryType)] << ",quantity=" << quantity
 		<< ",weight=" << weight << ",pos=" << pos.str() << "]";
 	return ss.str();
+}
+
+int Infantry::getQuantity() const override {
+	return quantity;
+}
+
+int Infantry::getWeight() const override {
+	return weight;
+}
+
+void Infantry::increaseQuantity(int num) override {
+	if (num >= 0) quantity += num;
+}
+
+void Infantry::setWeight(int w) override {
+	weight = w;
 }
 
 //Bai 3.5 Danh sach cac don vi quan su
@@ -388,11 +420,11 @@ void Army::updateState(Unit** unitArray, int size) {
 	LF = (sumScoreOfVeh >= 1000) ? 1000 : sumScoreOfVeh;
 	EXP = (sumScoreOfInfan >= 500) ? 500 : sumScoreOfInfan;
 
-	/*int sum = LF + EXP;
-	int capacity = UnitList::isSpecialNum(sum) ? 12 : 8;*/
+	int sum = LF + EXP;
+	int capacity = UnitList::isSpecialNum(sum) ? 12 : 8;
 
 	if (unitList) delete unitList;
-	unitList = new UnitList(LF, EXP);
+	unitList = new UnitList(capacity);
 
 	for (int i = 0; i < size; ++i) {
 		if (unitArray[i])
@@ -443,7 +475,7 @@ int LiberationArmy::increaseToNearestFibo(int n) {
 
 void LiberationArmy::fight(Army* enemy, bool defense) {
 	bool win, war;
-	if (!enemy || !unitList || !enemy->unitList) {
+	if (!enemy || !this->getUnitlist() || !enemy->getUnitlist()) {
 		win = false;
 		war = false;
 		return;
@@ -562,7 +594,7 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 					for (Unit* unit : tempLF) {
 						unitList->remove(unit);
 					}
-					current = enemy->unitList->getHead();
+					current = enemy->getUnitlist()->getHead();
 					while (current != nullptr) {
 						if (!current->data->isDestroyed()) {
 							mergeUnits(current->data);
@@ -597,7 +629,7 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 					for (Unit* unit : tempEXP) {
 						unitList->remove(unit);
 					}
-					current = enemy->unitList->getHead();
+					current = enemy->getUnitlist()->getHead();
 					while (current != nullptr) {
 						if (!current->data->isDestroyed()) {
 							mergeUnits(current->data);
@@ -717,6 +749,18 @@ void LiberationArmy::updateLFandEXP() {
 	EXP = (sumScoreOfInfan >= 500) ? 500 : sumScoreOfInfan;
 }
 
+void LiberationArmy::setLF(int LF) override {
+	this->LF = LF; 
+}
+
+void LiberationArmy::setEXP(int EXP) override {
+	this->EXP = EXP;
+}
+
+UnitList* LiberationArmy::getUnitlist() const override {
+	return unitList;
+}
+
 //3.4.2 Quan doi Sai Gon
 void ARVN::fight(Army* enemy, bool defense) {
 	if (!unitList || !enemy) return;
@@ -802,6 +846,18 @@ string ARVN::str() const {
 		",battleField=" + ((this->battleField != nullptr) ? this->battleField->str() : "]");
 }
 
+void ARVN::setLF(int LF) override {
+	this->LF = LF;
+}
+
+void ARVN::setEXP(int EXP) override {
+	this->EXP = EXP;
+}
+
+UnitList* ARVN::getUnitlist() const override {
+	return unitList;
+}
+
 //3.7 Cac yeu to dia hinh cua tran dia
 TerrainElement::TerrainElement() {};
 TerrainElement::~TerrainElement() {};
@@ -822,7 +878,7 @@ void Mountain::getEffect(Army* army) const {
 	if (army->isLiberationArmy()) {
 		while (current != nullptr) {
 			Position posOfUnit = current->data->getCurrentPosition();
-			if (distance(posOfUnit, this->pos) <= 2.0) {
+			if (Position::distance(posOfUnit, this->pos) <= 2.0) {
 				int x = current->data->getAttackScore();
 				if (current->data->isInfantryType()) {
 					army->setEXP(army->getEXP() + static_cast<int>(ceil(0.3 * x)));
@@ -840,7 +896,7 @@ void Mountain::getEffect(Army* army) const {
 		current = units->getHead();
 		while (current != nullptr) {
 			Position posOfUnit = current->data->getCurrentPosition();
-			if (distance(posOfUnit, this->pos) <= 4.0) {
+			if (Position::distance(posOfUnit, this->pos) <= 4.0) {
 				int x = current->data->getAttackScore();
 				if (current->data->isInfantryType()) {
 					army->setEXP(army->getEXP() + static_cast<int>(ceil(0.2 * x)));
@@ -865,7 +921,7 @@ void River::getEffect(Army* army) const {
 	Node* current = units->getHead();
 	while (current != nullptr) {
 		Position posOfUnit = current->data->getCurrentPosition();
-		if (distance(posOfUnit, this->pos) <= 2.0 && current->data->isInfantryType()) {
+		if (Position::distance(posOfUnit, this->pos) <= 2.0 && current->data->isInfantryType()) {
 			int oldScore = current->data->getAttackScore();
 			int newScore = static_cast<int>(ceil(oldScore * 1.0 * 0.9));
 			int quantity = current->data->getQuantity();
@@ -891,7 +947,7 @@ void Urban::getEffect(Army* army) const {
 			Position posOfUnit = current->data->getCurrentPosition();
 			InfantryType infantry = current->data->getInfantryType();
 			VehicleType vehicle = current->data->getVehicleType();
-			double D = distance(posOfUnit, this->pos);
+			double D = Position::distance(posOfUnit, this->pos);
 			if (D <= 5.0 && (infantry == SPECIALFORCES || infantry == REGULARINFANTRY) && current->data->isInfantryType()) {
 				int currentScore = current->data->getAttackScore();
 				int extraScore = static_cast<int>(ceil(1.0 * 2 * currentScore / D));
@@ -919,7 +975,7 @@ void Urban::getEffect(Army* army) const {
 	else if (army->isARVN()) {
 		while (current != nullptr) {
 			Position posOfUnit = current->data->getCurrentPosition();
-			double D = distance(posOfUnit, this->pos);
+			double D = Position::distance(posOfUnit, this->pos);
 			InfantryType infantry = current->data->getInfantryType();
 			if (current->data->isInfantryType() && infantry == REGULARINFANTRY) {
 				int currentScore = current->data->getAttackScore();
@@ -950,7 +1006,7 @@ void Fortification::getEffect(Army* army) const {
 			InfantryType infantry = current->data->getInfantryType();
 			VehicleType vehicle = current->data->getVehicleType();
 			bool flag = current->data->isInfantryType();
-			if (distance(posOfUnit, this->pos) <= 2) {
+			if (Position::distance(posOfUnit, this->pos) <= 2) {
 				int currentScore = current->data->getAttackScore();
 				int newScore = static_cast<int>(ceil(currentScore * 1.0 * 0.8));
 				int quantity = current->data->getQuantity();
@@ -970,7 +1026,7 @@ void Fortification::getEffect(Army* army) const {
 			InfantryType infantry = current->data->getInfantryType();
 			VehicleType vehicle = current->data->getVehicleType();
 			bool flag = current->data->isInfantryType();
-			if (distance(posOfUnit, this->pos) <= 2) {
+			if (Position::distance(posOfUnit, this->pos) <= 2) {
 				int currentScore = current->data->getAttackScore();
 				int newScore = static_cast<int>(ceil(currentScore * 1.0 * 1.2));
 				int quantity = current->data->getQuantity();
@@ -994,7 +1050,7 @@ void SpecialZone::getEffect(Army* army) const {
 	Node* current = units->getHead();
 	while (current != nullptr) {
 		Position posOfUnit = current->data->getCurrentPosition();
-		if (distance(posOfUnit, this->pos) <= 1.0) {
+		if (Position::distance(posOfUnit, this->pos) <= 1.0) {
 			int newScore = 0;
 			current->data->setWeight(0);
 		}
@@ -1082,7 +1138,11 @@ string BattleField::str() const {
 	return ss.str();
 }
 
-TerrainElement*** BattleField::getTerrain() const {
+vector<vector<TerrainElement*>>& BattleField::getTerrain() {
+	return terrain;
+}
+
+const vector<vector<TerrainElement*>>& BattleField::getTerrain() const {
 	return terrain;
 }
 
@@ -1347,7 +1407,7 @@ int Configuration::getEventCode() const {
 	return eventCode;
 }
 
-vector<Posititon*> Configuration::getArrayForest() const {
+vector<Position*> Configuration::getArrayForest() const {
 	return arrayForest;
 }
 

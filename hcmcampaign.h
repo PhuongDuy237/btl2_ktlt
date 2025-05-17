@@ -79,6 +79,14 @@ public:
     virtual ~Army();
     int getLF();
     int getEXP();
+    virtual void setLF(int LF) = 0;
+    virtual void setEXP(int EXP) = 0;
+    virtual bool isLiberationArmy() const = 0;
+    virtual bool isARVN() const = 0;
+    UnitList* getUnitlist() const = 0;
+    void updateState(Unit** unitArray, int size) const = 0;
+    void updateState();
+
 };
 
 class LiberationArmy : public Army {
@@ -87,6 +95,21 @@ public:
     void fight(Army* enemy, bool defense = false) override;
     string str() const = 0 override;
     int increaseToNearestFibo(int n);
+    bool isLiberationArmy() const override;
+    bool isARVN() const override;
+    vector<Unit*> findSubset(const vector<Unit*>& units, int target);
+    double calculateTotalPower(const vector<Unit*>& units);
+    void mergeUnits(Unit* newUnit);
+    void updateLFandEXP();
+};
+
+class ARVN : public Army {
+public:
+    ARVN(Unit** unitArray, int size, string name, BattleField* battleField);
+    void fight(Army* enemy, bool defense = false) override;
+    string str() const override;
+    bool isLiberationArmy() const override;
+    bool isARVN() const override;
 };
 
 class Position
@@ -95,13 +118,14 @@ private:
     int r, c;
 
 public:
-    Position(int r = 0, int c = 0);
+    Position(int r = 0, int c = 0) const;
     Position(const string &str_pos); // Example: str_pos = "(1,15)"
     int getRow() const;
     int getCol() const;
     void setRow(int r);
     void setCol(int c);
     string str() const; // Example: returns "(1,15)"
+    double distance(Position a, Position b);
 };
 
 class Unit
@@ -123,6 +147,9 @@ public:
     virtual int getQuantity() const = 0;
     virtual void increaseQuantity(int num) = 0;
     virtual void setQuantity(int q);
+    virtual void setWeight(int w) = 0;
+    virtual bool isDestroyed() const;
+    virtual void destroy();
 };
 
 struct Node {
@@ -148,6 +175,10 @@ public:
     Node* MakeNode(Unit* unit);
     bool isSpecialNum(const int &s);
     Node* getHead();
+    void setHead(Node* newHead);
+    bool isUnitExist(Unit* unit);
+    void remove(Unit* unit);
+    void add(Unit* unit)
 };
 
 class TerrainElement
@@ -156,6 +187,55 @@ public:
     TerrainElement();
     ~TerrainElement();
     virtual void getEffect(Army *army) = 0;
+    virtual string str() const = 0;
+};
+
+class Road : public TerrainElement {
+private:
+    Position pos;
+public:
+    void getEffect(Army* army) const overide;
+    string str() const override;
+};
+
+class Mountain : public TerrainElement {
+private: 
+    Position pos;
+public:
+    void getEffect(Army* army) const override = 0;
+    string str() const override;
+};
+
+class River : public TerrainElement {
+private:
+    Position pos;
+public:
+    void getEffect(Army* army) const override = 0;
+    string str() const override;
+};
+
+class Urban : public TerrainElement {
+private:
+    Position pos;
+public:
+    void getEffect(Army* army) const override = 0;
+    string str() const override = 0;
+};
+
+class Fortification : public TerrainElement {
+private:
+    Position pos;
+public:
+    void getEffect(Army* army) const override = 0;
+    string str() const override = 0;
+};
+
+class SpecialZone : public TerrainElement {
+private:
+    Position pos;
+public:
+    void getEffect(Army* army) const override = 0;
+    string str() const override;
 };
 
 class BattleField
@@ -163,11 +243,13 @@ class BattleField
 private:
     int n_rows, n_cols;
     // TODO
+    TerrainElement*** terrain;
 public:
     BattleField(int n_rows, int n_cols, vector<Position *> arrayForest,
                 vector<Position *> arrayRiver, vector<Position *> arrayFortification,
                 vector<Position *> arrayUrban, vector<Position *> arraySpecialZone);
     ~BattleField();
+    string str() const;
 };
 
 class HCMCampaign
@@ -206,6 +288,23 @@ public:
     InfantryType getInfantryType() const override;
     bool isVehicleType() const override;
     bool isInfantryType() const override;
+};
+
+class Configuration {
+private:
+    int num_rows, num_cols;
+    vector <Position*> arrayForest,
+                       arrayRiver,
+                       arrayFortification,
+                       arrayUrban,
+                       arraySpecialZone;
+    vector<Unit*> liberationUnits;
+    vector<Unit*> ARVNUnits;
+    int eventCode;
+public:
+    Configuration(const string& filepath);
+    ~Configuration();
+    string str() const;
 };
 
 #endif

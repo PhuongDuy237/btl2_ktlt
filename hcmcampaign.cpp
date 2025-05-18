@@ -116,24 +116,24 @@ bool Vehicle::isInfantryType() const {
 	return false;
 }
 
-int Vehicle::getQuantity() const override {
+int Vehicle::getQuantity() const {
 	return quantity; 
 }
 
-int Vehicle:: getWeight() const override {
+int Vehicle:: getWeight() const {
 	return weight;
 }
 
-void Vehicle::increaseQuantity(int num) override { 
+void Vehicle::increaseQuantity(int num) { 
 	if (num >= 0) quantity += num; 
 }
 
-void Vehicle::setWeight(int w) override { 
+void Vehicle::setWeight(int w) { 
 	weight = w; 
 }
 
 //Bai 3.3 Luc luong bo binh
-static bool Infantry::isSquareNum(int n) {
+bool Infantry::isSquareNum(int n) {
 	int sqrtn = (int)sqrt(n);
 	if (sqrtn * sqrtn == n) return true;
 	return false;
@@ -192,28 +192,26 @@ string Infantry::str() const {
 	return ss.str();
 }
 
-int Infantry::getQuantity() const override {
+int Infantry::getQuantity() const {
 	return quantity;
 }
 
-int Infantry::getWeight() const override {
+int Infantry::getWeight() const {
 	return weight;
 }
 
-void Infantry::increaseQuantity(int num) override {
+void Infantry::increaseQuantity(int num) {
 	if (num >= 0) quantity += num;
 }
 
-void Infantry::setWeight(int w) override {
+void Infantry::setWeight(int w) {
 	weight = w;
 }
 
 //Bai 3.5 Danh sach cac don vi quan su
-UnitList::UnitList(int LF, int EXP) {
+UnitList::UnitList(int capacity) {
 	this->head = nullptr;
-	int s = LF + EXP;
-	this->capacity = isSpecialNum(s) ? 12 : 8;
-	this->amount = 0;
+	this->capacity = capacity;
 }
 
 UnitList::~UnitList() {
@@ -225,7 +223,7 @@ UnitList::~UnitList() {
 	}
 }
 
-UnitList::Node* UnitList::MakeNode(Unit* unit) {
+Node* UnitList::MakeNode(Unit* unit) {
 	if (!unit) return nullptr;
 	Node* newNode = new Node(unit);
 	
@@ -457,7 +455,7 @@ UnitList* Army::getUnitlist() const {
 }
 
 //3.4.1 Quan giai phong
-LiberationArmy::LiberationArmy(const Unit** unitArray, int size, string name,
+LiberationArmy::LiberationArmy(Unit** unitArray, int size, string name,
 	BattleField* battleField) : Army(unitArray, size, name, battleField) {}
 
 int LiberationArmy::increaseToNearestFibo(int n) {
@@ -572,7 +570,7 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 			for (Unit* unit : subsetB) {
 				unitList->remove(unit);
 			}
-			current = enemy->unitList->getHead();
+			current = enemy->getUnitlist()->getHead();
 			while (current != nullptr) {
 				if (!current->data->isDestroyed()) {
 					mergeUnits(current->data);
@@ -749,15 +747,15 @@ void LiberationArmy::updateLFandEXP() {
 	EXP = (sumScoreOfInfan >= 500) ? 500 : sumScoreOfInfan;
 }
 
-void LiberationArmy::setLF(int LF) override {
+void LiberationArmy::setLF(int LF) {
 	this->LF = LF; 
 }
 
-void LiberationArmy::setEXP(int EXP) override {
+void LiberationArmy::setEXP(int EXP) {
 	this->EXP = EXP;
 }
 
-UnitList* LiberationArmy::getUnitlist() const override {
+UnitList* LiberationArmy::getUnitlist() const {
 	return unitList;
 }
 
@@ -846,15 +844,15 @@ string ARVN::str() const {
 		",battleField=" + ((this->battleField != nullptr) ? this->battleField->str() : "]");
 }
 
-void ARVN::setLF(int LF) override {
+void ARVN::setLF(int LF) {
 	this->LF = LF;
 }
 
-void ARVN::setEXP(int EXP) override {
+void ARVN::setEXP(int EXP) {
 	this->EXP = EXP;
 }
 
-UnitList* ARVN::getUnitlist() const override {
+UnitList* ARVN::getUnitlist() const {
 	return unitList;
 }
 

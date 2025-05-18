@@ -91,7 +91,7 @@ public:
 
 class LiberationArmy : public Army {
 public:
-    LiberationArmy(const Unit** unitArray, int size, string name, BattleField* battleField);
+    LiberationArmy(Unit** unitArray, int size, string name, BattleField* battleField);
     void fight(Army* enemy, bool defense = false) override;
     string str() const override;
     int increaseToNearestFibo(int n);
@@ -181,7 +181,7 @@ public:
     string str() const;
     // TODO
     Node* MakeNode(Unit* unit);
-    bool isSpecialNum(const int &s);
+    static bool isSpecialNum(const int &s);
     Node* getHead();
     void setHead(Node* newHead);
     bool isUnitExist(Unit* unit);
@@ -251,14 +251,15 @@ class BattleField
 private:
     int n_rows, n_cols;
     // TODO
-    vector<vector<TerrainElement*>> terrain; 
+    vector<vector<TerrainElement*>> terrain;
 public:
     BattleField(int n_rows, int n_cols, vector<Position *> arrayForest,
                 vector<Position *> arrayRiver, vector<Position *> arrayFortification,
                 vector<Position *> arrayUrban, vector<Position *> arraySpecialZone);
     ~BattleField();
     string str() const;
-    TerrainElement*** getTerrain() const;
+    vector<vector<TerrainElement*>>& getTerrain();
+    const vector<vector<TerrainElement*>>& getTerrain() const;
     int get_n_rows() const;
     int get_n_cols() const;
 };

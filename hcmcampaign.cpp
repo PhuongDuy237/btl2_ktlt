@@ -760,6 +760,9 @@ UnitList* LiberationArmy::getUnitlist() const {
 }
 
 //3.4.2 Quan doi Sai Gon
+ARVN::ARVN(Unit** unitArray, int size, string name, BattleField* battleField)
+	: Army(unitArray, size, name, battleField) {}
+
 void ARVN::fight(Army* enemy, bool defense) {
 	if (!unitList || !enemy) return;
 

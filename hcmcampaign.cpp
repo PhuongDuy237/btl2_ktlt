@@ -1282,10 +1282,21 @@ Configuration::Configuration(const string& filepath) {
 					int army = stoi(fields[3]);
 					Position* p = new Position(row, col);
 					Unit* u = nullptr;
-					// Tao dung loai Unit cua ban o day
-					// if (type == "TANK") u = new Vehicle(quantity, weight, *p, TANK);
-					// else if (type == "REGULARINFANTRY") u = new Infantry(quantity, weight, *p, REGULARINFANTRY);
-					// ... Neu co cac loai khac thi them vao day
+					// Vehicle types
+					if (type == "TANK") u = new Vehicle(quantity, weight, *p, TANK);
+					else if (type == "MORTAR") u = new Vehicle(quantity, weight, *p, MORTAR);
+					else if (type == "ANTIAIRCRAFT") u = new Vehicle(quantity, weight, *p, ANTIAIRCRAFT);
+					else if (type == "ARMOREDCAR") u = new Vehicle(quantity, weight, *p, ARMOREDCAR);
+					else if (type == "APC") u = new Vehicle(quantity, weight, *p, APC);
+					else if (type == "ARTILLERY") u = new Vehicle(quantity, weight, *p, ARTILLERY);
+					else if (type == "TRUCK") u = new Vehicle(quantity, weight, *p, TRUCK);
+					// Infantry types
+					else if (type == "REGULARINFANTRY") u = new Infantry(quantity, weight, *p, REGULARINFANTRY);
+					else if (type == "SNIPER") u = new Infantry(quantity, weight, *p, SNIPER);
+					else if (type == "ANTIAIRCRAFTSQUAD") u = new Infantry(quantity, weight, *p, ANTIAIRCRAFTSQUAD);
+					else if (type == "MORTARSQUAD") u = new Infantry(quantity, weight, *p, MORTARSQUAD);
+					else if (type == "ENGINEER") u = new Infantry(quantity, weight, *p, ENGINEER);
+					else if (type == "SPECIALFORCES") u = new Infantry(quantity, weight, *p, SPECIALFORCES);
 
 					if (!u) delete p;
 					else if (army == 0) liberationUnits.push_back(u);
@@ -1332,14 +1343,13 @@ Configuration::~Configuration() {
 
 string Configuration::str() const {
 	stringstream ss;
-	ss << "Configuration[";
-	ss << "num_rows=" << num_rows << ",";
+	ss << "[num_rows=" << num_rows << ",";
 	ss << "num_cols=" << num_cols << ",";
 
 	// arrayForest
 	ss << "arrayForest=[";
 	for (size_t i = 0; i < arrayForest.size(); ++i) {
-		if (arrayForest[i]) ss << arrayForest[i]->getRow() << ":" << arrayForest[i]->getCol();
+		if (arrayForest[i]) ss << "(" << arrayForest[i]->getRow() << "," << arrayForest[i]->getCol() << ")";
 		else ss << "null";
 		if (i < arrayForest.size() - 1) ss << ",";
 	}
@@ -1348,7 +1358,7 @@ string Configuration::str() const {
 	// arrayRiver
 	ss << "arrayRiver=[";
 	for (size_t i = 0; i < arrayRiver.size(); ++i) {
-		if (arrayRiver[i]) ss << arrayRiver[i]->getRow() << ":" << arrayRiver[i]->getCol();
+		if (arrayRiver[i]) ss << "(" << arrayRiver[i]->getRow() << "," << arrayRiver[i]->getCol() << ")";
 		else ss << "null";
 		if (i < arrayRiver.size() - 1) ss << ",";
 	}
@@ -1357,7 +1367,7 @@ string Configuration::str() const {
 	// arrayFortification
 	ss << "arrayFortification=[";
 	for (size_t i = 0; i < arrayFortification.size(); ++i) {
-		if (arrayFortification[i]) ss << arrayFortification[i]->getRow() << ":" << arrayFortification[i]->getCol();
+		if (arrayFortification[i]) ss << "(" << arrayFortification[i]->getRow() << "," << arrayFortification[i]->getCol() << ")";
 		else ss << "null";
 		if (i < arrayFortification.size() - 1) ss << ",";
 	}
@@ -1366,7 +1376,7 @@ string Configuration::str() const {
 	// arrayUrban
 	ss << "arrayUrban=[";
 	for (size_t i = 0; i < arrayUrban.size(); ++i) {
-		if (arrayUrban[i]) ss << arrayUrban[i]->getRow() << ":" << arrayUrban[i]->getCol();
+		if (arrayUrban[i]) ss << "(" << arrayUrban[i]->getRow() << "," << arrayUrban[i]->getCol() << ")";
 		else ss << "null";
 		if (i < arrayUrban.size() - 1) ss << ",";
 	}
@@ -1375,7 +1385,7 @@ string Configuration::str() const {
 	// arraySpecialZone
 	ss << "arraySpecialZone=[";
 	for (size_t i = 0; i < arraySpecialZone.size(); ++i) {
-		if (arraySpecialZone[i]) ss << arraySpecialZone[i]->getRow() << ":" << arraySpecialZone[i]->getCol();
+		if (arraySpecialZone[i]) ss << "(" << arraySpecialZone[i]->getRow() << "," << arraySpecialZone[i]->getCol() <<")";
 		else ss << "null";
 		if (i < arraySpecialZone.size() - 1) ss << ",";
 	}

@@ -64,8 +64,7 @@ enum InfantryType
     REGULARINFANTRY
 };
 
-class Army
-{
+class Army{
 protected:
     int LF, EXP;
     string name;

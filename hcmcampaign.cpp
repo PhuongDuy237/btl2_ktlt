@@ -1000,6 +1000,7 @@ void Fortification::getEffect(Army* army) const {
 	Node* current = units->getHead();
 	if (army->isLiberationArmy()) {
 		while (current != nullptr) {
+			int newWeight = 0;
 			Position posOfUnit = current->data->getCurrentPosition();
 			InfantryType infantry = current->data->getInfantryType();
 			VehicleType vehicle = current->data->getVehicleType();
@@ -1009,7 +1010,10 @@ void Fortification::getEffect(Army* army) const {
 				int newScore = static_cast<int>(ceil(currentScore * 1.0 * 0.8));
 				int quantity = current->data->getQuantity();
 				if (quantity > 0) {
-					int newWeight = ceil(1.0 * (newScore - ((int)(flag ? infantry : vehicle) * 56)) / quantity);
+					if (flag) // Infantry
+						newWeight = ceil(1.0 * (newScore - ((int)infantry * 56)) / quantity);
+					else // Vehicle
+						newWeight = ceil(1.0 * (newScore - ((int)vehicle * 56)) / quantity);
 					current->data->setWeight(newWeight);
 				}
 			}
@@ -1020,6 +1024,7 @@ void Fortification::getEffect(Army* army) const {
 
 	else if (army->isARVN()) {
 		while (current != nullptr) {
+			int newWeight = 0;
 			Position posOfUnit = current->data->getCurrentPosition();
 			InfantryType infantry = current->data->getInfantryType();
 			VehicleType vehicle = current->data->getVehicleType();
@@ -1029,7 +1034,10 @@ void Fortification::getEffect(Army* army) const {
 				int newScore = static_cast<int>(ceil(currentScore * 1.0 * 1.2));
 				int quantity = current->data->getQuantity();
 				if (quantity > 0) {
-					int newWeight = ceil(1.0 * (newScore - ((int)(flag ? infantry : vehicle) * 56)) / quantity);
+					if (flag) // Infantry
+						newWeight = ceil(1.0 * (newScore - ((int)infantry * 56)) / quantity);
+					else // Vehicle
+						newWeight = ceil(1.0 * (newScore - ((int)vehicle * 56)) / quantity);
 					current->data->setWeight(newWeight);
 				}
 			}
@@ -1479,7 +1487,7 @@ HCMCampaign::HCMCampaign(const string& config_file_path) {
 void HCMCampaign::run() {
 	int r = this->battleField->get_n_rows();
 	int c = this->battleField->get_n_cols();
-	TerrainElement*** terrain = this->battleField->getTerrain();
+	vector<vector<TerrainElement*>>& terrain = this->battleField->getTerrain();
 
 	//ap dung hieu ung dia hinh
 	for (int i = 0; i < r; ++i) {

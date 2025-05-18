@@ -100,7 +100,7 @@ string Vehicle::str() const {
 	static const string vehicleTypeNames[] = { "TRUCK", "MORTAR", "ANTIAIRCRAFT", "ARMOREDCAR", "APC", "ARTILLERY", "TANK" };
 	stringstream ss;
 	ss << "Vehicle[vehicleType=" << vehicleTypeNames[static_cast<int>(vehicleType)] << ",quantity=" << quantity
-		<< ",weight=" << weight << ",pos=" << pos.str() << "]";
+		<< ",weight=" << weight << ",position=" << pos.str() << "]";
 	return ss.str();
 }
 
@@ -188,7 +188,7 @@ string Infantry::str() const {
 	static const string infantryTypeNames[] = { "SNIPER", "ANTIAIRCRAFTSQUAD", "MORTARSQUAD", "ENGINEER", "SPECIALFORCES", "REGULARINFANTRY" };
 	stringstream ss;
 	ss << "Infantry[infantryType=" << infantryTypeNames[static_cast<int>(infantryType)] << ",quantity=" << quantity
-		<< ",weight=" << weight << ",pos=" << pos.str() << "]";
+		<< ",weight=" << weight << ",position=" << pos.str() << "]";
 	return ss.str();
 }
 
@@ -1165,111 +1165,109 @@ int BattleField::get_n_cols() const {
 
 //3.9 Thiet lap
 Configuration::Configuration(const string& filepath) {
-	num_rows = 0;
-	num_cols = 0;
-	eventCode = 0;
+    num_rows = 0;
+    num_cols = 0;
+    eventCode = 0;
 
-	ifstream in(filepath);
-	if (!in.is_open()) return;
+    ifstream in(filepath);
+    if (!in.is_open()) return;
 
-	string line;
-	while (getline(in, line)) {
-		if (line.empty()) continue;
+    string line;
+    while (getline(in, line)) {
+        if (line.empty()) continue;
 
-		// Tach key va value
-		size_t pos = line.find('=');
-		if (pos == string::npos) continue;
-		string key = line.substr(0, pos);
-		string val = line.substr(pos + 1);
+        // Tach key va value
+        size_t pos = line.find('=');
+        if (pos == string::npos) continue;
+        string key = line.substr(0, pos);
+        string val = line.substr(pos + 1);
 
-		// Xu ly so hang va so cot
-		if (key == "NUM_ROWS") {
-			num_rows = stoi(val);
-		}
-		else if (key == "NUM_COLS") {
-			num_cols = stoi(val);
-		}
-		// Xu ly eventCode
-		else if (key == "EVENT_CODE") {
-			int code = stoi(val);
-			if (code < 0) eventCode = 0;
-			else if (code > 99) eventCode = code % 100;
-			else eventCode = code;
-		}
-		// Xu ly cac mang vi tri dia hinh
-		else if (key == "ARRAY_FOREST" || key == "ARRAY_RIVER" ||
-			key == "ARRAY_FORTIFICATION" || key == "ARRAY_URBAN" ||
-			key == "ARRAY_SPECIAL_ZONE") {
-			// Bo dau [ ] neu co
-			if (!val.empty() && val.front() == '[') val = val.substr(1);
-			if (!val.empty() && val.back() == ']') val.pop_back();
+        // Xu ly so hang va so cot
+        if (key == "NUM_ROWS") {
+            num_rows = stoi(val);
+        } else if (key == "NUM_COLS") {
+            num_cols = stoi(val);
+        } else if (key == "EVENT_CODE") {
+            int code = stoi(val);
+            if (code < 0) eventCode = 0;
+            else if (code > 99) eventCode = code % 100;
+            else eventCode = code;
+        } 
+        // Xu ly cac mang vi tri dia hinh
+        else if (key == "ARRAY_FOREST" || key == "ARRAY_RIVER" ||
+                 key == "ARRAY_FORTIFICATION" || key == "ARRAY_URBAN" ||
+                 key == "ARRAY_SPECIAL_ZONE") {
+            if (!val.empty() && val.front() == '[') val = val.substr(1);
+            if (!val.empty() && val.back() == ']') val.pop_back();
 
-			size_t start = 0;
-			while (start < val.size()) {
-				// Tim vi tri ( va )
-				size_t l = val.find('(', start);
-				size_t r = val.find(')', l);
-				if (l == string::npos || r == string::npos) break;
-				string pair = val.substr(l + 1, r - l - 1);
-				size_t comma = pair.find(',');
-				if (comma != string::npos) {
-					int row = stoi(pair.substr(0, comma));
-					int col = stoi(pair.substr(comma + 1));
-					Position* p = new Position(row, col);
-					if (key == "ARRAY_FOREST") arrayForest.push_back(p);
-					else if (key == "ARRAY_RIVER") arrayRiver.push_back(p);
-					else if (key == "ARRAY_FORTIFICATION") arrayFortification.push_back(p);
-					else if (key == "ARRAY_URBAN") arrayUrban.push_back(p);
-					else if (key == "ARRAY_SPECIAL_ZONE") arraySpecialZone.push_back(p);
-				}
-				start = r + 1;
-			}
-		}
-		// Xu ly danh sach Unit
+            size_t start = 0;
+            while (start < val.size()) {
+                size_t l = val.find('(', start);
+                size_t r = val.find(')', l);
+                if (l == string::npos || r == string::npos) break;
+                string pair = val.substr(l + 1, r - l - 1);
+                size_t comma = pair.find(',');
+                if (comma != string::npos) {
+                    int row = stoi(pair.substr(0, comma));
+                    int col = stoi(pair.substr(comma + 1));
+                    Position* p = new Position(row, col);
+                    if (key == "ARRAY_FOREST") arrayForest.push_back(p);
+                    else if (key == "ARRAY_RIVER") arrayRiver.push_back(p);
+                    else if (key == "ARRAY_FORTIFICATION") arrayFortification.push_back(p);
+                    else if (key == "ARRAY_URBAN") arrayUrban.push_back(p);
+                    else if (key == "ARRAY_SPECIAL_ZONE") arraySpecialZone.push_back(p);
+                }
+                start = r + 1;
+            }
+        }
+        // Xu ly danh sach Unit
 		else if (key == "UNIT_LIST") {
-			// Bo dau [ ] neu co
 			if (!val.empty() && val.front() == '[') val = val.substr(1);
 			if (!val.empty() && val.back() == ']') val.pop_back();
 
 			size_t start = 0;
 			while (start < val.size()) {
-				// Tim ten Unit
 				size_t lparen = val.find('(', start);
 				if (lparen == string::npos) break;
 				string type = val.substr(start, lparen - start);
-
-				// Tim dau ) cua unit
-				size_t rparen = val.find(')', lparen);
-				if (rparen == string::npos) break;
+				size_t rparen = lparen;
+				int paren_count = 0;
+				// Tim dung dau ngoac dong cua unit hien tai
+				for (; rparen < val.size(); ++rparen) {
+					if (val[rparen] == '(') paren_count++;
+					else if (val[rparen] == ')') {
+						paren_count--;
+						if (paren_count == 0) break;
+					}
+				}
+				if (rparen == val.size()) break; // khong tim thay ngoac dong
 				string params = val.substr(lparen + 1, rparen - lparen - 1);
 
+				// Xu ly tach params nhu cu
 				vector<string> fields;
-				size_t last = 0;
-				int field_count = 0;
-				while (last < params.size() && field_count < 4) {
-					// Truong vi tri la (x,y)
-					if (field_count == 2 && params[last] == '(') {
-						size_t close = params.find(')', last);
-						if (close == string::npos) break;
-						fields.push_back(params.substr(last, close - last + 1));
-						last = close + 2;
+				size_t field_start = 0;
+				for (int field = 0; field < 4; ++field) {
+					if (field == 2) {
+						// truong vi tri (x,y)
+						size_t lpos = params.find('(', field_start);
+						size_t rpos = params.find(')', lpos);
+						fields.push_back(params.substr(lpos, rpos - lpos + 1));
+						field_start = rpos + 2;
 					}
 					else {
-						size_t comma = params.find(',', last);
-						if (comma == string::npos) {
-							fields.push_back(params.substr(last));
+						size_t comma = params.find(',', field_start);
+						if (comma == string::npos || field == 3) {
+							fields.push_back(params.substr(field_start));
 							break;
 						}
-						fields.push_back(params.substr(last, comma - last));
-						last = comma + 1;
+						fields.push_back(params.substr(field_start, comma - field_start));
+						field_start = comma + 1;
 					}
-					field_count++;
 				}
 
 				if (fields.size() == 4) {
 					int quantity = stoi(fields[0]);
 					int weight = stoi(fields[1]);
-					// Parse vi tri (x,y)
 					int row = 0, col = 0;
 					string posstr = fields[2];
 					size_t lpos = posstr.find('(');
@@ -1303,14 +1301,14 @@ Configuration::Configuration(const string& filepath) {
 					else if (army == 1) ARVNUnits.push_back(u);
 					else delete u;
 				}
-				// Nhay toi unit tiep theo
-				start = rparen + 2;
+				// Bo qua dau phay va space sau ngoac dong
+				start = rparen + 1;
+				while (start < val.size() && (val[start] == ',' || isspace(val[start]))) ++start;
 			}
 		}
-	}
-	in.close();
+    }
+    in.close();
 }
-
 Configuration::~Configuration() {
 	for (Position* pos : arrayForest) {
 		delete pos;

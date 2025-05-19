@@ -266,35 +266,45 @@ bool UnitList::insert(Unit* unit) {
 			(unit->isVehicleType() && current->data->isVehicleType() &&
 				unit->getVehicleType() == current->data->getVehicleType())) {
 			current->data->increaseQuantity(unit->getQuantity());
+			unit->setQuantity(0);
 			return true;
 		}
 		current = current->next;
 	}
 
 	// Them don vi
-	Node* newNode = MakeNode(unit->clone());
-	if (!newNode) return false;
 
 	if (unit->isInfantryType()) {
 		// Chen dau danh sach cho Infantry
-		newNode->next = head;
-		head = newNode;
+		if (head == NULL){
+			head = MakeNode(unit);
+			return true;
+		}
+		else {
+			Node *newNode = MakeNode(unit);
+			newNode->next = head;
+			head = newNode;
+			return true;
+		}
 	}
 	else {
 		// Chen cuoi danh sach cho Vehicle
 		// newNode->next = nullptr;
 		if (!head) {
-			head = newNode;
+			head = MakeNode(unit);
+			return true;
 		}
 		else {
-			Node* temp = head;
-			while (temp->next != nullptr) {
-				temp = temp->next;
+			Node *tmp = head;
+			while (tmp->next != NULL){
+				tmp = tmp->next;
 			}
-			temp->next = newNode;
+			Node* newNode = MakeNode(unit);
+			tmp->next = newNode;
+			return true;
 		}
 	}
-	amount++;
+	this->amount++;
 	return true;
 }
 
@@ -325,16 +335,17 @@ void UnitList :: set_capacity(int x){
 }
 
 string UnitList::str()const {
+	
 	stringstream ss; //luu chuoi str can xuat
 	int numOfVeh = 0, numOfInfan = 0;
 	string units; //luu chuoi cua cac don vi Unit
 	Node* current = head;
 	
 	while (current) {
-		if (!current->data) {
-			current = current->next;
-			continue;
-		}
+		// if (!current->data) {
+		// 	current = current->next;
+		// 	continue;
+		// }
 
 		if (current->data->isVehicleType())
 			numOfVeh++;
@@ -348,7 +359,9 @@ string UnitList::str()const {
 		units += current->data->str();
 		current = current->next;
 	}
-
+	if (units.empty()){
+		return "UnitList[count_vehicle=0;count_infantry=0]";
+	}
 	ss << "UnitList[count_vehicle=" << numOfVeh << ";count_infantry=" << numOfInfan << ";" << units << "]";
 	return ss.str();
 }

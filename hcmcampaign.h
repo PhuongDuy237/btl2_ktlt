@@ -72,6 +72,7 @@ protected:
     BattleField *battleField;
 
 public:
+    Army();
     Army(Unit **unitArray, int size, string name, BattleField *battleField);
     virtual void fight(Army *enemy, bool defense = false) = 0;
     virtual string str() const = 0;
@@ -140,9 +141,9 @@ protected:
     Position pos;
 
 public:
-    Unit(int quantity, int weight, const Position &pos);
+    Unit(int quantity, int weight, const Position pos);
     virtual ~Unit();
-    virtual int getAttackScore() const = 0;
+    virtual int getAttackScore() = 0;
     Position getCurrentPosition() const;
     virtual string str() const = 0;
     virtual VehicleType getVehicleType() const { return TRUCK; }
@@ -156,12 +157,13 @@ public:
     virtual void setWeight(int w) = 0;
     virtual bool isDestroyed() const;
     virtual void destroy();
+    virtual Unit* clone() const = 0;
 };
 
 struct Node {
     Unit* data;
     Node* next;
-    Node(Unit* u) : data(u), next(nullptr) {};
+    // Node(Unit* u) : data(u), next(nullptr) {};
 };
 
 class UnitList
@@ -186,6 +188,7 @@ public:
     bool isUnitExist(Unit* unit);
     void remove(Unit* unit);
     void add(Unit* unit);
+    void set_capacity(int x);
 };
 
 class TerrainElement
@@ -281,8 +284,8 @@ class Vehicle : public Unit {
 private:
     VehicleType vehicleType;
 public:
-    Vehicle(int quantity, int weight, const Position &pos, VehicleType vehicleType);
-    int getAttackScore() const override;
+    Vehicle(int quantity, int weight, const Position pos, VehicleType vehicleType);
+    int getAttackScore() override;
     string str() const override;
     VehicleType getVehicleType() const override;
     bool isVehicleType() const override;
@@ -291,14 +294,15 @@ public:
     int getWeight() const override;
     void increaseQuantity(int num) override;
     void setWeight(int w) override;
+    Unit* clone() const override;
 };
 
 class Infantry : public Unit{
 private:
     InfantryType infantryType;
 public:
-    Infantry(int quantity, int weight, const Position &pos, InfantryType infantryType);
-    int getAttackScore() const override;
+    Infantry(int quantity, int weight, const Position pos, InfantryType infantryType);
+    int getAttackScore() override;
     string str() const override;
     InfantryType getInfantryType() const override;
     bool isVehicleType() const override;
@@ -308,6 +312,7 @@ public:
     int getWeight() const override;
     void increaseQuantity(int num) override;
     void setWeight(int w) override;
+    Unit* clone() const override;
 };
 
 class Configuration {

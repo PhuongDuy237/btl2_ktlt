@@ -49,7 +49,7 @@ double Position::distance(const Position& a, const Position& b) {
 }
 
 //Bai 3.1: Don vi quan su
-Unit::Unit(int quantity, int weight, const Position & pos)
+Unit::Unit(int quantity, int weight, const Position pos)
 	:quantity(quantity), weight(weight), pos(pos) {}
 
 Unit:: ~Unit() {}
@@ -89,11 +89,12 @@ void Unit::destroy() {
 }
 
 //Bai 3.2 Phuong tien chien dau
-Vehicle::Vehicle(int quantity, int weight, const Position& pos, VehicleType vehicleType)
-	:Unit(quantity, weight, pos), vehicleType(vehicleType) {}
+Vehicle::Vehicle(int quantity, int weight, const Position pos, VehicleType vehicleType):Unit(quantity, weight, pos){
+		this->vehicleType = vehicleType;
+	}
 
-int Vehicle::getAttackScore() const {
-	return (static_cast<int>(vehicleType) * 304 + quantity * weight) / 30;
+int Vehicle::getAttackScore() {
+	return ceil(1.0 * (static_cast<int>(vehicleType) * 304 + quantity * weight) / 30);
 }
 
 string Vehicle::str() const {
@@ -131,22 +132,27 @@ void Vehicle::increaseQuantity(int num) {
 void Vehicle::setWeight(int w) { 
 	weight = w; 
 }
+Unit* Vehicle::clone() const  {
+    return new Vehicle(this->quantity, this->weight, this->pos, this->vehicleType);
+}
 
 //Bai 3.3 Luc luong bo binh
 bool Infantry::isSquareNum(int n) {
-	int sqrtn = (int)sqrt(n);
+	int sqrtn = ceil(sqrt(n));
 	if (sqrtn * sqrtn == n) return true;
 	return false;
 }
-Infantry::Infantry(int quantity, int weight, const Position& pos, InfantryType infantryType)
-	:Unit(quantity, weight, pos), infantryType(infantryType) {}
+Infantry::Infantry(int quantity, int weight, const Position pos, InfantryType infantryType)
+	:Unit(quantity, weight, pos){
+		this->infantryType = infantryType;
+	}
 
-int Infantry::getAttackScore() const {
-	int score = static_cast<int>(infantryType) * 56 + quantity * weight;
+int Infantry::getAttackScore() {
+	int score = int(infantryType) * 56 + quantity * weight;
 	if (infantryType == SPECIALFORCES && isSquareNum(weight))
 		score += 75;
 
-	int personalNum = score + 1975;
+	int personalNum = score + 4;
 	while (personalNum >= 10) {
 		int sum = 0;
 		while (personalNum > 0) {
@@ -156,20 +162,14 @@ int Infantry::getAttackScore() const {
 		personalNum = sum;
 	}
 
-	int newQuantity = quantity;
-	if (personalNum > 7)
-		newQuantity = (int)ceil(quantity * 1.2);
-	else if (personalNum < 3)
-		newQuantity = (int)ceil(quantity * 0.9);
-
-	if (newQuantity != quantity) {
-		const_cast<Infantry*>(this)->quantity = newQuantity;
-		score = static_cast<int>(infantryType) * 56 + newQuantity * weight;
-		if (infantryType == SPECIALFORCES && isSquareNum(weight))
-			score += 75;
+	if (personalNum > 7){
+		quantity = (int)ceil(1.2 * this->quantity);
 	}
-
-	return score;
+	else if (personalNum < 3){
+		quantity = this->quantity - ceil(0.1 * this->quantity);
+		if (this->quantity < 0) this->quantity = 0;
+	}
+	return int(infantryType) * 56 + quantity * weight + ((infantryType == SPECIALFORCES && isSquareNum(weight)) ? 75 : 0);
 }
 
 InfantryType Infantry::getInfantryType () const {
@@ -208,6 +208,10 @@ void Infantry::setWeight(int w) {
 	weight = w;
 }
 
+Unit* Infantry :: clone() const {
+    return new Infantry(this->quantity, this->weight, this->pos, this->infantryType);
+}
+
 //Bai 3.5 Danh sach cac don vi quan su
 UnitList::UnitList(int capacity) {
 	this->head = nullptr;
@@ -225,8 +229,9 @@ UnitList::~UnitList() {
 
 Node* UnitList::MakeNode(Unit* unit) {
 	if (!unit) return nullptr;
-	Node* newNode = new Node(unit);
-	
+	Node* newNode = new Node;
+	newNode->data = unit;
+	newNode->next = nullptr;
 	return newNode;
 }
 
@@ -267,7 +272,7 @@ bool UnitList::insert(Unit* unit) {
 	}
 
 	// Them don vi
-	Node* newNode = MakeNode(unit);
+	Node* newNode = MakeNode(unit->clone());
 	if (!newNode) return false;
 
 	if (unit->isInfantryType()) {
@@ -277,7 +282,7 @@ bool UnitList::insert(Unit* unit) {
 	}
 	else {
 		// Chen cuoi danh sach cho Vehicle
-		newNode->next = nullptr;
+		// newNode->next = nullptr;
 		if (!head) {
 			head = newNode;
 		}
@@ -313,6 +318,10 @@ bool UnitList::isContain(InfantryType infantryType) {
 		temp = temp->next;
 	}
 	return false;
+}
+
+void UnitList :: set_capacity(int x){
+	this->capacity = x;
 }
 
 string UnitList::str()const {
@@ -363,31 +372,62 @@ bool UnitList::isUnitExist(Unit* unit) {
 
 void UnitList::remove(Unit* unit) {
 	if (!head) return;
-	if (head->data == unit) {
-		Node* temp = head;
+	while (head->next && head->next->data != unit) {
 		head = head->next;
-		delete temp;
-		amount--;
-		return;
 	}
+	if (!head->next) return; 
+	Node* xoa = head->next;
+	head->next = head->next->next;
+	delete xoa;
 }
 
-void UnitList::add(Unit* unit) {
-	Node* newNode = new Node(unit);
-	newNode->next = head;
-	head = newNode;
-}
+// void UnitList::add(Unit* unit) {
+// 	Node* newNode = new Node(unit);
+// 	newNode->next = head;
+// 	head = newNode;
+// }
 
 // Bai 3.4 Quan doi
+Army::Army() : unitList(nullptr), battleField(nullptr), name(""), LF(0), EXP(0) {}
 Army::Army(Unit** unitArray, int size, string name, BattleField* battleField) {
 	this->name = name;
 	this->battleField = battleField;
+	this->LF = 0;
+	this->EXP = 0;
+	
+	int sumScoreOfVeh = 0, sumScoreOfInfan = 0;
+	for (int i = 0; i < size; ++i) {
+		if (unitArray[i]) {
+			if (unitArray[i]->isVehicleType())
+				sumScoreOfVeh += unitArray[i]->getAttackScore();
+			else if (unitArray[i]->isInfantryType())
+				sumScoreOfInfan += unitArray[i]->getAttackScore();
+		}
+	}
 
-	unitList = nullptr;
-	updateState(unitArray, size);
+	LF = (sumScoreOfVeh >= 1000) ? 1000 : sumScoreOfVeh;
+	EXP = (sumScoreOfInfan >= 500) ? 500 : sumScoreOfInfan;
+	unitList = new UnitList(size);
+
+	for (int i = 0; i < size; ++i) {
+		if (unitArray[i]){
+			Unit* clone = unitArray[i]->clone();
+			this->unitList->insert(clone);
+		}
+	}
+	Node* head = unitList->getHead();
+    while (head){
+        head->data->getAttackScore();
+        head = head->next;
+    }
 }
 
 void Army::updateState() {
+	if (!unitList || !unitList->getHead()) {
+        LF = 0;
+        EXP = 0;
+        return;
+    }
 	int sumScoreOfVeh = 0, sumScoreOfInfan = 0;
 
 	Node* current = unitList->getHead();
@@ -401,34 +441,18 @@ void Army::updateState() {
 
 	LF = std::min(1000, sumScoreOfVeh);
 	EXP = std::min(500, sumScoreOfInfan);
-}
-
-
-void Army::updateState(Unit** unitArray, int size) {
-	int sumScoreOfVeh = 0, sumScoreOfInfan = 0;
-	for (int i = 0; i < size; ++i) {
-		if (unitArray[i]) {
-			if (unitArray[i]->isVehicleType())
-				sumScoreOfVeh += unitArray[i]->getAttackScore();
-			else if (unitArray[i]->isInfantryType())
-				sumScoreOfInfan += unitArray[i]->getAttackScore();
-		}
-	}
-
-	LF = (sumScoreOfVeh >= 1000) ? 1000 : sumScoreOfVeh;
-	EXP = (sumScoreOfInfan >= 500) ? 500 : sumScoreOfInfan;
-
 	int sum = LF + EXP;
-	int capacity = UnitList::isSpecialNum(sum) ? 12 : 8;
-
-	if (unitList) delete unitList;
-	unitList = new UnitList(capacity);
-
-	for (int i = 0; i < size; ++i) {
-		if (unitArray[i])
-			unitList->insert(unitArray[i]);
-	}
+	this->unitList->set_capacity(UnitList::isSpecialNum(sum) ? 12 : 8);
 }
+
+
+// void Army::updateState(Unit** unitArray, int size) {
+// 	int sum = LF + EXP;
+// 	int capacity = UnitList::isSpecialNum(sum) ? 12 : 8;
+
+// 	if (unitList) delete unitList;
+	
+// }
 
 Army::~Army() {
 	delete unitList;
@@ -472,7 +496,7 @@ int LiberationArmy::increaseToNearestFibo(int n) {
 }
 
 void LiberationArmy::fight(Army* enemy, bool defense) {
-	bool win, war;
+	bool win = false, war = false;
 	if (!enemy || !this->getUnitlist() || !enemy->getUnitlist()) {
 		win = false;
 		war = false;
@@ -480,67 +504,65 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 	}
 
 	if (defense) {
-		double fightLF = LF * 1.3 * 1.0;
-		double fightEXP = EXP * 1.3 * 1.0;
+		LF = ceil(1.3 * LF);
+		EXP = ceil(1.3 * EXP);
 
-		bool isLFgreater = fightLF >= enemy->getLF();
-		bool isEXPgreater = fightEXP >= enemy->getEXP();
+		bool isLFgreater = LF >= enemy->getLF();
+		bool isEXPgreater = EXP >= enemy->getEXP();
 
 		if (isLFgreater && isEXPgreater) {
 			win = true;
 			return;
 		}
 
-		else if (isLFgreater || isEXPgreater) {
-			win = false;
+		else if ((isLFgreater && !isEXPgreater) || (isEXPgreater && !isLFgreater)) {
+			win = true;
 			war = true;
 			Node* current = unitList->getHead();
 			while (current != nullptr) {
 				int q = current->data->getQuantity();
-				current->data->setQuantity(ceil(static_cast<int>(q * 0.9)));
+				current->data->setQuantity(ceil(static_cast<int>(1.0 * q * 9 / 10)));
 				current = current->next;
 			}
+			this->updateState();
 		}
 
 		else if (!isLFgreater && !isEXPgreater) {
-			win = false;
-			war = true;
-			bool needRepeat = true;
-			while (needRepeat) {
-				Node* current = unitList->getHead();
-				while (current != nullptr) {
-					int q = current->data->getQuantity();
-					current->data->setQuantity(increaseToNearestFibo(q));
-					current = current->next;
-				}
-				this->updateLFandEXP();
-				double fightLF = LF * 1.3;
-				double fightEXP = EXP * 1.3;
-				bool isLFgreater = fightLF >= enemy->getLF();
-				bool isEXPgreater = fightEXP >= enemy->getEXP();
-				if (isLFgreater && isEXPgreater) {
-					win = true;
-					needRepeat = false;
-				}
-				else if (isLFgreater || isEXPgreater) {
-					// xu li giam 10% nhu cu
-					Node* current = unitList->getHead();
-					while (current != nullptr) {
-						int q = current->data->getQuantity();
-						current->data->setQuantity(ceil(q * 0.9));
-						current = current->next;
-					}
-					this->updateLFandEXP();
-					needRepeat = false;
-				}
-				// Neu van thua -> chi vien tiep
+			Node* current = unitList->getHead();
+			while (current != nullptr) {
+				int q = current->data->getQuantity();
+				current->data->setQuantity(increaseToNearestFibo(q));
+				current = current->next;
 			}
+			this->updateState();
+			// this->updateLFandEXP();
+			// double fightLF = LF * 1.3;
+			// double fightEXP = EXP * 1.3;
+			// bool isLFgreater = fightLF >= enemy->getLF();
+			// bool isEXPgreater = fightEXP >= enemy->getEXP();
+			// if (isLFgreater && isEXPgreater) {
+			// 	win = true;
+			// 	needRepeat = false;
+			// }
+			// else if (isLFgreater || isEXPgreater) {
+			// 	// xu li giam 10% nhu cu
+			// 	Node* current = unitList->getHead();
+			// 	while (current != nullptr) {
+			// 		int q = current->data->getQuantity();
+			// 		current->data->setQuantity(ceil(q * 0.9));
+			// 		current = current->next;
+			// 	}
+			// 	this->updateLFandEXP();
+			// 	needRepeat = false;
+			// }
+			// Neu van thua -> chi vien tiep
 		}
+	
 	}
 
 	else {
-		double fightLF = 1.5 * LF * 1.0;
-		double fightEXP = 1.5 * EXP * 1.0;
+		LF = ceil(1.5 * LF);
+		EXP = ceil(1.5 * EXP);
 
 		Node* current = unitList->getHead();
 		vector <Unit*> tempLF; //vehicle
@@ -570,101 +592,129 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 			for (Unit* unit : subsetB) {
 				unitList->remove(unit);
 			}
-			current = enemy->getUnitlist()->getHead();
-			while (current != nullptr) {
-				if (!current->data->isDestroyed()) {
-					mergeUnits(current->data);
-				}
-				current->data->destroy();
-				current = current->next;
-			}
-			updateLFandEXP();
+			// current = enemy->getUnitlist()->getHead();
+			// while (current != nullptr) {
+			// 	if (!current->data->isDestroyed()) {
+			// 		mergeUnits(current->data);
+			// 	}
+			// 	current->data->destroy();
+			// 	current = current->next;
+			// }
+			// updateLFandEXP();
 		}
 		else if (!subsetA.empty() || !subsetB.empty()) {
-			if (!subsetA.empty()) {
-				double totalVehiclePower = calculateTotalPower(tempLF);
-				if (totalVehiclePower > enemyLF) {
+			if (!subsetA.empty() && subsetB.empty()) {
+				int sum_LF= 0;
+				Node *tmp_2 = unitList->getHead();
+				while (tmp_2 != NULL){
+					sum_LF += tmp_2->data->getAttackScore();
+					tmp_2 = tmp_2->next;
+				}
+				if (sum_LF > enemyLF) {
 					win = true;
 					war = true;
 					for (Unit* unit : subsetA) {
 						unitList->remove(unit);
 					}
-					for (Unit* unit : tempLF) {
-						unitList->remove(unit);
-					}
-					current = enemy->getUnitlist()->getHead();
-					while (current != nullptr) {
-						if (!current->data->isDestroyed()) {
-							mergeUnits(current->data);
-						}
-						current->data->destroy();
-						current = current->next;
-					}
+					// current = enemy->getUnitlist()->getHead();
+					// while (current != nullptr) {
+					// 	if (!current->data->isDestroyed()) {
+					// 		mergeUnits(current->data);
+					// 	}
+					// 	current->data->destroy();
+					// 	current = current->next;
+					// }
 					updateLFandEXP();
 				}
 				else {
 					win = false;
 					war = false;
-					current = unitList->getHead();
-					while (current != nullptr) {
-						if (!current->data->isDestroyed()) {
-							int w = current->data->getWeight();
-							current->data->setWeight(static_cast<int>(w * 0.9));
-						}
-						current = current->next;
-					}
-					updateLFandEXP();
+					// current = unitList->getHead();
+					// while (current != nullptr) {
+					// 	if (!current->data->isDestroyed()) {
+					// 		int w = current->data->getWeight();
+					// 		current->data->setWeight(static_cast<int>(w * 0.9));
+					// 	}
+					// 	current = current->next;
+					// }
+					// updateLFandEXP();
 				}
 			}
 			else {
-				double totalInfantryPower = calculateTotalPower(tempEXP);
-				if (totalInfantryPower > enemyEXP) {
+				int sum_EXP = 0;
+				Node* tmp_3 = unitList->getHead();
+				while (tmp_3 != NULL){
+					sum_EXP += tmp_3->data->getAttackScore();
+					tmp_3 = tmp_3->next;
+				}
+				if (sum_EXP > enemyEXP) {
 					win = true;
 					war = true;
 					for (Unit* unit : subsetB) {
 						unitList->remove(unit);
 					}
-					for (Unit* unit : tempEXP) {
-						unitList->remove(unit);
-					}
-					current = enemy->getUnitlist()->getHead();
-					while (current != nullptr) {
-						if (!current->data->isDestroyed()) {
-							mergeUnits(current->data);
-						}
-						current->data->destroy();
-						current = current->next;
-					}
-					updateLFandEXP();
+					// current = enemy->getUnitlist()->getHead();
+					// while (current != nullptr) {
+					// 	if (!current->data->isDestroyed()) {
+					// 		mergeUnits(current->data);
+					// 	}
+					// 	current->data->destroy();
+					// 	current = current->next;
+					// }
+					// updateLFandEXP();
 				}
 				else {
 					win = false;
 					war = false;
-					current = unitList->getHead();
-					while (current != nullptr) {
-						if (!current->data->isDestroyed()) {
-							int w = current->data->getWeight();
-							current->data->setWeight(static_cast<int>(w * 0.9));
-						}
-						current = current->next;
-					}
-					updateLFandEXP();
+					// current = unitList->getHead();
+					// while (current != nullptr) {
+					// 	if (!current->data->isDestroyed()) {
+					// 		int w = current->data->getWeight();
+					// 		current->data->setWeight(static_cast<int>(w * 0.9));
+					// 	}
+					// 	current = current->next;
+					// }
+					// updateLFandEXP();
 				}
 			}
 		}
 		else {
 			win = false;
 			war = false;
-			current = unitList->getHead();
-			while (current != nullptr) {
-				if (!current->data->isDestroyed()) {
-					int w = current->data->getWeight();
-					current->data->setWeight(static_cast<int>(w * 0.9));
-				}
-				current = current->next;
-			}
-			updateLFandEXP();
+			// current = unitList->getHead();
+			// while (current != nullptr) {
+			// 	if (!current->data->isDestroyed()) {
+			// 		int w = current->data->getWeight();
+			// 		current->data->setWeight(static_cast<int>(w * 0.9));
+			// 	}
+			// 	current = current->next;
+			// }
+			// updateLFandEXP();
 		}
+
+		if (win && war){
+			Node* head1 = enemy->getUnitlist()->getHead();
+            vector <Unit*> dao_list;
+            while (head1 != nullptr) {
+                Unit* unitClone = head1->data->clone();
+                dao_list.push_back(unitClone);
+                head1 = head1->next;
+            }
+            for (int i = dao_list.size() - 1; i >= 0; i--){
+                this->unitList->insert(dao_list[i]);
+            }
+            enemy->getUnitlist()->setHead(nullptr);
+            this->updateState();
+		}
+		else if (war == false){
+            Node *tmp = unitList->getHead();
+            while (tmp != NULL){
+                int x = tmp->data->getWeight();
+                tmp->data->setWeight(ceil(1.0 * x * 9 / 10));
+                tmp = tmp->next;
+            }
+            this->updateState();
+        }
 	}
 }
 
@@ -688,20 +738,20 @@ vector<Unit*> LiberationArmy::findSubset(const vector<Unit*>& units, int target)
 	vector<Unit*> bestSubset;
 	int minSum = INT_MAX;
 	int n = units.size();
+	int sum = 0;
 
-	for (int mask = 1; mask < (1 << n); mask++) {
-		vector<Unit*> subset;
-		int sum = 0;
-		for (int i = 0; i < n; i++) {
-			if (mask & (1 << i)) {
-				subset.push_back(units[i]);
-				sum += units[i]->getAttackScore();
+	int left = 0;
+	for (int right = 0; right < n; right++){
+		sum += units[right]->getAttackScore();
+		Unit* unit_clone = units[right]->clone();
+		bestSubset.push_back(unit_clone);
+		if (sum > target){
+			while (sum - units[left]->getAttackScore() > target){
+				sum -= units[left++]->getAttackScore();
+				bestSubset.erase(bestSubset.begin());
 			}
-		}
-		if (sum >= target && sum < minSum) {
-			minSum = sum;
-			bestSubset = subset;
-		}
+			break;
+		}	
 	}
 	return bestSubset;
 }

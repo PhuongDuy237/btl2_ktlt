@@ -45,7 +45,7 @@ string Position::str() const {
 }
 
 double Position::distance(const Position& a, const Position& b) {
-	return sqrt((a.r - b.r) * (a.r - b.r) + (a.c - b.c)*(a.c - b.c));
+	return sqrt((a.r - b.r) * (a.r - b.r) + (a.c - b.c) * (a.c - b.c));
 }
 
 //Bai 3.1: Don vi quan su
@@ -89,9 +89,13 @@ void Unit::destroy() {
 }
 
 //Bai 3.2 Phuong tien chien dau
-Vehicle::Vehicle(int quantity, int weight, const Position pos, VehicleType vehicleType):Unit(quantity, weight, pos){
-		this->vehicleType = vehicleType;
-	}
+Vehicle::Vehicle(int quantity, int weight, const Position pos, VehicleType vehicleType) :Unit(quantity, weight, pos) {
+	this->vehicleType = vehicleType;
+}
+
+int Vehicle::getAttackScoreOnly() const {
+	return ceil(1.0 * (static_cast<int>(vehicleType) * 304 + quantity * weight) / 30);
+}
 
 int Vehicle::getAttackScore() {
 	return ceil(1.0 * (static_cast<int>(vehicleType) * 304 + quantity * weight) / 30);
@@ -118,22 +122,22 @@ bool Vehicle::isInfantryType() const {
 }
 
 int Vehicle::getQuantity() const {
-	return quantity; 
+	return quantity;
 }
 
-int Vehicle:: getWeight() const {
+int Vehicle::getWeight() const {
 	return weight;
 }
 
-void Vehicle::increaseQuantity(int num) { 
-	if (num >= 0) quantity += num; 
+void Vehicle::increaseQuantity(int num) {
+	if (num >= 0) quantity += num;
 }
 
-void Vehicle::setWeight(int w) { 
-	weight = w; 
+void Vehicle::setWeight(int w) {
+	weight = w;
 }
-Unit* Vehicle::clone() const  {
-    return new Vehicle(this->quantity, this->weight, this->pos, this->vehicleType);
+Unit* Vehicle::clone() const {
+	return new Vehicle(this->quantity, this->weight, this->pos, this->vehicleType);
 }
 
 //Bai 3.3 Luc luong bo binh
@@ -143,9 +147,17 @@ bool Infantry::isSquareNum(int n) {
 	return false;
 }
 Infantry::Infantry(int quantity, int weight, const Position pos, InfantryType infantryType)
-	:Unit(quantity, weight, pos){
-		this->infantryType = infantryType;
+	:Unit(quantity, weight, pos) {
+	this->infantryType = infantryType;
+}
+
+int Infantry::getAttackScoreOnly() const {
+	int score = static_cast<int>(this->infantryType) * 56 + this->quantity * this->weight;
+	if (infantryType == SPECIALFORCES && isSquareNum(weight)) {
+		score += 75;
 	}
+	return score;
+}
 
 int Infantry::getAttackScore() {
 	int score = int(infantryType) * 56 + quantity * weight;
@@ -162,17 +174,17 @@ int Infantry::getAttackScore() {
 		personalNum = sum;
 	}
 
-	if (personalNum > 7){
+	if (personalNum > 7) {
 		quantity = (int)ceil(1.2 * this->quantity);
 	}
-	else if (personalNum < 3){
+	else if (personalNum < 3) {
 		quantity = this->quantity - ceil(0.1 * this->quantity);
 		if (this->quantity < 0) this->quantity = 0;
 	}
 	return int(infantryType) * 56 + quantity * weight + ((infantryType == SPECIALFORCES && isSquareNum(weight)) ? 75 : 0);
 }
 
-InfantryType Infantry::getInfantryType () const {
+InfantryType Infantry::getInfantryType() const {
 	return infantryType;
 }
 
@@ -208,8 +220,8 @@ void Infantry::setWeight(int w) {
 	weight = w;
 }
 
-Unit* Infantry :: clone() const {
-    return new Infantry(this->quantity, this->weight, this->pos, this->infantryType);
+Unit* Infantry::clone() const {
+	return new Infantry(this->quantity, this->weight, this->pos, this->infantryType);
 }
 
 //Bai 3.5 Danh sach cac don vi quan su
@@ -276,12 +288,12 @@ bool UnitList::insert(Unit* unit) {
 
 	if (unit->isInfantryType()) {
 		// Chen dau danh sach cho Infantry
-		if (head == NULL){
+		if (head == NULL) {
 			head = MakeNode(unit);
 			return true;
 		}
 		else {
-			Node *newNode = MakeNode(unit);
+			Node* newNode = MakeNode(unit);
 			newNode->next = head;
 			head = newNode;
 			return true;
@@ -295,8 +307,8 @@ bool UnitList::insert(Unit* unit) {
 			return true;
 		}
 		else {
-			Node *tmp = head;
-			while (tmp->next != NULL){
+			Node* tmp = head;
+			while (tmp->next != NULL) {
 				tmp = tmp->next;
 			}
 			Node* newNode = MakeNode(unit);
@@ -330,17 +342,17 @@ bool UnitList::isContain(InfantryType infantryType) {
 	return false;
 }
 
-void UnitList :: set_capacity(int x){
+void UnitList::set_capacity(int x) {
 	this->capacity = x;
 }
 
 string UnitList::str()const {
-	
+
 	stringstream ss; //luu chuoi str can xuat
 	int numOfVeh = 0, numOfInfan = 0;
 	string units; //luu chuoi cua cac don vi Unit
 	Node* current = head;
-	
+
 	while (current) {
 		// if (!current->data) {
 		// 	current = current->next;
@@ -359,7 +371,7 @@ string UnitList::str()const {
 		units += current->data->str();
 		current = current->next;
 	}
-	if (units.empty()){
+	if (units.empty()) {
 		return "UnitList[count_vehicle=0;count_infantry=0]";
 	}
 	ss << "UnitList[count_vehicle=" << numOfVeh << ";count_infantry=" << numOfInfan << ";" << units << "]";
@@ -388,7 +400,7 @@ void UnitList::remove(Unit* unit) {
 	while (head->next && head->next->data != unit) {
 		head = head->next;
 	}
-	if (!head->next) return; 
+	if (!head->next) return;
 	Node* xoa = head->next;
 	head->next = head->next->next;
 	delete xoa;
@@ -407,7 +419,7 @@ Army::Army(Unit** unitArray, int size, string name, BattleField* battleField) {
 	this->battleField = battleField;
 	this->LF = 0;
 	this->EXP = 0;
-	
+
 	int sumScoreOfVeh = 0, sumScoreOfInfan = 0;
 	for (int i = 0; i < size; ++i) {
 		if (unitArray[i]) {
@@ -423,24 +435,24 @@ Army::Army(Unit** unitArray, int size, string name, BattleField* battleField) {
 	unitList = new UnitList(size);
 
 	for (int i = 0; i < size; ++i) {
-		if (unitArray[i]){
+		if (unitArray[i]) {
 			Unit* clone = unitArray[i]->clone();
 			this->unitList->insert(clone);
 		}
 	}
 	Node* head = unitList->getHead();
-    while (head){
-        head->data->getAttackScore();
-        head = head->next;
-    }
+	while (head) {
+		head->data->getAttackScore();
+		head = head->next;
+	}
 }
 
 void Army::updateState() {
 	if (!unitList || !unitList->getHead()) {
-        LF = 0;
-        EXP = 0;
-        return;
-    }
+		LF = 0;
+		EXP = 0;
+		return;
+	}
 	int sumScoreOfVeh = 0, sumScoreOfInfan = 0;
 
 	Node* current = unitList->getHead();
@@ -448,7 +460,7 @@ void Army::updateState() {
 		if (current->data->isVehicleType())
 			sumScoreOfVeh += current->data->getAttackScore();
 		else if (current->data->isInfantryType())
-			sumScoreOfInfan += current->data->getAttackScore();
+			sumScoreOfInfan += current->data->getAttackScoreOnly();
 		current = current->next;
 	}
 
@@ -464,7 +476,7 @@ void Army::updateState() {
 // 	int capacity = UnitList::isSpecialNum(sum) ? 12 : 8;
 
 // 	if (unitList) delete unitList;
-	
+
 // }
 
 Army::~Army() {
@@ -570,7 +582,7 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 			// }
 			// Neu van thua -> chi vien tiep
 		}
-	
+
 	}
 
 	else {
@@ -617,9 +629,9 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 		}
 		else if (!subsetA.empty() || !subsetB.empty()) {
 			if (!subsetA.empty() && subsetB.empty()) {
-				int sum_LF= 0;
-				Node *tmp_2 = unitList->getHead();
-				while (tmp_2 != NULL){
+				int sum_LF = 0;
+				Node* tmp_2 = unitList->getHead();
+				while (tmp_2 != NULL) {
 					sum_LF += tmp_2->data->getAttackScore();
 					tmp_2 = tmp_2->next;
 				}
@@ -656,7 +668,7 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 			else {
 				int sum_EXP = 0;
 				Node* tmp_3 = unitList->getHead();
-				while (tmp_3 != NULL){
+				while (tmp_3 != NULL) {
 					sum_EXP += tmp_3->data->getAttackScore();
 					tmp_3 = tmp_3->next;
 				}
@@ -705,29 +717,29 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 			// updateLFandEXP();
 		}
 
-		if (win && war){
+		if (win && war) {
 			Node* head1 = enemy->getUnitlist()->getHead();
-            vector <Unit*> dao_list;
-            while (head1 != nullptr) {
-                Unit* unitClone = head1->data->clone();
-                dao_list.push_back(unitClone);
-                head1 = head1->next;
-            }
-            for (int i = dao_list.size() - 1; i >= 0; i--){
-                this->unitList->insert(dao_list[i]);
-            }
-            enemy->getUnitlist()->setHead(nullptr);
-            this->updateState();
+			vector <Unit*> dao_list;
+			while (head1 != nullptr) {
+				Unit* unitClone = head1->data->clone();
+				dao_list.push_back(unitClone);
+				head1 = head1->next;
+			}
+			for (int i = dao_list.size() - 1; i >= 0; i--) {
+				this->unitList->insert(dao_list[i]);
+			}
+			enemy->getUnitlist()->setHead(nullptr);
+			this->updateState();
 		}
-		else if (war == false){
-            Node *tmp = unitList->getHead();
-            while (tmp != NULL){
-                int x = tmp->data->getWeight();
-                tmp->data->setWeight(ceil(1.0 * x * 9 / 10));
-                tmp = tmp->next;
-            }
-            this->updateState();
-        }
+		else if (war == false) {
+			Node* tmp = unitList->getHead();
+			while (tmp != NULL) {
+				int x = tmp->data->getWeight();
+				tmp->data->setWeight(ceil(1.0 * x * 9 / 10));
+				tmp = tmp->next;
+			}
+			this->updateState();
+		}
 	}
 }
 
@@ -739,7 +751,7 @@ bool LiberationArmy::isARVN() const {
 	return false;
 }
 
-string LiberationArmy::str() const{
+string LiberationArmy::str() const {
 	string LF = to_string(this->LF);
 	string EXP = to_string(this->EXP);
 	return "LiberationArmy[LF=" + LF + ",EXP=" + EXP +
@@ -754,17 +766,17 @@ vector<Unit*> LiberationArmy::findSubset(const vector<Unit*>& units, int target)
 	int sum = 0;
 
 	int left = 0;
-	for (int right = 0; right < n; right++){
+	for (int right = 0; right < n; right++) {
 		sum += units[right]->getAttackScore();
 		Unit* unit_clone = units[right]->clone();
 		bestSubset.push_back(unit_clone);
-		if (sum > target){
-			while (sum - units[left]->getAttackScore() > target){
+		if (sum > target) {
+			while (sum - units[left]->getAttackScore() > target) {
 				sum -= units[left++]->getAttackScore();
 				bestSubset.erase(bestSubset.begin());
 			}
 			break;
-		}	
+		}
 	}
 	return bestSubset;
 }
@@ -811,7 +823,7 @@ void LiberationArmy::updateLFandEXP() {
 }
 
 void LiberationArmy::setLF(int LF) {
-	this->LF = LF; 
+	this->LF = LF;
 }
 
 void LiberationArmy::setEXP(int EXP) {
@@ -835,7 +847,7 @@ void ARVN::fight(Army* enemy, bool defense) {
 		while (current != nullptr) {
 			int q = current->data->getQuantity();
 			current->data->setQuantity(static_cast<int>(ceil(1.0 * 0.8 * q)));
-			
+
 			if (current->data->getQuantity() <= 1) {
 				Node* erase = current;
 
@@ -855,7 +867,7 @@ void ARVN::fight(Army* enemy, bool defense) {
 		}
 		this->updateState();
 	}
-	
+
 	else if (defense) {
 		if (!unitList || !unitList->getHead()) {
 			this->setLF(0);
@@ -1228,62 +1240,64 @@ int BattleField::get_n_cols() const {
 
 //3.9 Thiet lap
 Configuration::Configuration(const string& filepath) {
-    num_rows = 0;
-    num_cols = 0;
-    eventCode = 0;
+	num_rows = 0;
+	num_cols = 0;
+	eventCode = 0;
 
-    ifstream in(filepath);
-    if (!in.is_open()) return;
+	ifstream in(filepath);
+	if (!in.is_open()) return;
 
-    string line;
-    while (getline(in, line)) {
-        if (line.empty()) continue;
+	string line;
+	while (getline(in, line)) {
+		if (line.empty()) continue;
 
-        // Tach key va value
-        size_t pos = line.find('=');
-        if (pos == string::npos) continue;
-        string key = line.substr(0, pos);
-        string val = line.substr(pos + 1);
+		// Tach key va value
+		size_t pos = line.find('=');
+		if (pos == string::npos) continue;
+		string key = line.substr(0, pos);
+		string val = line.substr(pos + 1);
 
-        // Xu ly so hang va so cot
-        if (key == "NUM_ROWS") {
-            num_rows = stoi(val);
-        } else if (key == "NUM_COLS") {
-            num_cols = stoi(val);
-        } else if (key == "EVENT_CODE") {
-            int code = stoi(val);
-            if (code < 0) eventCode = 0;
-            else if (code > 99) eventCode = code % 100;
-            else eventCode = code;
-        } 
-        // Xu ly cac mang vi tri dia hinh
-        else if (key == "ARRAY_FOREST" || key == "ARRAY_RIVER" ||
-                 key == "ARRAY_FORTIFICATION" || key == "ARRAY_URBAN" ||
-                 key == "ARRAY_SPECIAL_ZONE") {
-            if (!val.empty() && val.front() == '[') val = val.substr(1);
-            if (!val.empty() && val.back() == ']') val.pop_back();
+		// Xu ly so hang va so cot
+		if (key == "NUM_ROWS") {
+			num_rows = stoi(val);
+		}
+		else if (key == "NUM_COLS") {
+			num_cols = stoi(val);
+		}
+		else if (key == "EVENT_CODE") {
+			int code = stoi(val);
+			if (code < 0) eventCode = 0;
+			else if (code > 99) eventCode = code % 100;
+			else eventCode = code;
+		}
+		// Xu ly cac mang vi tri dia hinh
+		else if (key == "ARRAY_FOREST" || key == "ARRAY_RIVER" ||
+			key == "ARRAY_FORTIFICATION" || key == "ARRAY_URBAN" ||
+			key == "ARRAY_SPECIAL_ZONE") {
+			if (!val.empty() && val.front() == '[') val = val.substr(1);
+			if (!val.empty() && val.back() == ']') val.pop_back();
 
-            size_t start = 0;
-            while (start < val.size()) {
-                size_t l = val.find('(', start);
-                size_t r = val.find(')', l);
-                if (l == string::npos || r == string::npos) break;
-                string pair = val.substr(l + 1, r - l - 1);
-                size_t comma = pair.find(',');
-                if (comma != string::npos) {
-                    int row = stoi(pair.substr(0, comma));
-                    int col = stoi(pair.substr(comma + 1));
-                    Position* p = new Position(row, col);
-                    if (key == "ARRAY_FOREST") arrayForest.push_back(p);
-                    else if (key == "ARRAY_RIVER") arrayRiver.push_back(p);
-                    else if (key == "ARRAY_FORTIFICATION") arrayFortification.push_back(p);
-                    else if (key == "ARRAY_URBAN") arrayUrban.push_back(p);
-                    else if (key == "ARRAY_SPECIAL_ZONE") arraySpecialZone.push_back(p);
-                }
-                start = r + 1;
-            }
-        }
-        // Xu ly danh sach Unit
+			size_t start = 0;
+			while (start < val.size()) {
+				size_t l = val.find('(', start);
+				size_t r = val.find(')', l);
+				if (l == string::npos || r == string::npos) break;
+				string pair = val.substr(l + 1, r - l - 1);
+				size_t comma = pair.find(',');
+				if (comma != string::npos) {
+					int row = stoi(pair.substr(0, comma));
+					int col = stoi(pair.substr(comma + 1));
+					Position* p = new Position(row, col);
+					if (key == "ARRAY_FOREST") arrayForest.push_back(p);
+					else if (key == "ARRAY_RIVER") arrayRiver.push_back(p);
+					else if (key == "ARRAY_FORTIFICATION") arrayFortification.push_back(p);
+					else if (key == "ARRAY_URBAN") arrayUrban.push_back(p);
+					else if (key == "ARRAY_SPECIAL_ZONE") arraySpecialZone.push_back(p);
+				}
+				start = r + 1;
+			}
+		}
+		// Xu ly danh sach Unit
 		else if (key == "UNIT_LIST") {
 			if (!val.empty() && val.front() == '[') val = val.substr(1);
 			if (!val.empty() && val.back() == ']') val.pop_back();
@@ -1369,8 +1383,8 @@ Configuration::Configuration(const string& filepath) {
 				while (start < val.size() && (val[start] == ',' || isspace(val[start]))) ++start;
 			}
 		}
-    }
-    in.close();
+	}
+	in.close();
 }
 Configuration::~Configuration() {
 	for (Position* pos : arrayForest) {
@@ -1446,7 +1460,7 @@ string Configuration::str() const {
 	// arraySpecialZone
 	ss << "arraySpecialZone=[";
 	for (size_t i = 0; i < arraySpecialZone.size(); ++i) {
-		if (arraySpecialZone[i]) ss << "(" << arraySpecialZone[i]->getRow() << "," << arraySpecialZone[i]->getCol() <<")";
+		if (arraySpecialZone[i]) ss << "(" << arraySpecialZone[i]->getRow() << "," << arraySpecialZone[i]->getCol() << ")";
 		else ss << "null";
 		if (i < arraySpecialZone.size() - 1) ss << ",";
 	}
@@ -1540,7 +1554,7 @@ HCMCampaign::HCMCampaign(const string& config_file_path) {
 			arr[i] = vect[i];
 		}
 		return arr;
-	};
+		};
 
 	//lay cac don vi qsu
 	vector<Unit*> liberationUnits = config->getLiberationUnits();
@@ -1619,7 +1633,7 @@ void HCMCampaign::run() {
 			prev = current;
 			current = current->next;
 		}
-	};
+		};
 
 	removeWeakUnits(liberationArmy);
 	removeWeakUnits(arvn);

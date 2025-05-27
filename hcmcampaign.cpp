@@ -93,10 +93,6 @@ Vehicle::Vehicle(int quantity, int weight, const Position pos, VehicleType vehic
 	this->vehicleType = vehicleType;
 }
 
-int Vehicle::getAttackScoreOnly() const {
-	return ceil(1.0 * (static_cast<int>(vehicleType) * 304 + quantity * weight) / 30);
-}
-
 int Vehicle::getAttackScore() {
 	return ceil(1.0 * (static_cast<int>(vehicleType) * 304 + quantity * weight) / 30);
 }
@@ -149,14 +145,6 @@ bool Infantry::isSquareNum(int n) {
 Infantry::Infantry(int quantity, int weight, const Position pos, InfantryType infantryType)
 	:Unit(quantity, weight, pos) {
 	this->infantryType = infantryType;
-}
-
-int Infantry::getAttackScoreOnly() const {
-	int score = static_cast<int>(this->infantryType) * 56 + this->quantity * this->weight;
-	if (infantryType == SPECIALFORCES && isSquareNum(weight)) {
-		score += 75;
-	}
-	return score;
 }
 
 int Infantry::getAttackScore() {
@@ -460,7 +448,7 @@ void Army::updateState() {
 		if (current->data->isVehicleType())
 			sumScoreOfVeh += current->data->getAttackScore();
 		else if (current->data->isInfantryType())
-			sumScoreOfInfan += current->data->getAttackScoreOnly();
+			sumScoreOfInfan += current->data->getAttackScore();
 		current = current->next;
 	}
 
@@ -999,7 +987,7 @@ void River::getEffect(Army* army) const {
 		Position posOfUnit = current->data->getCurrentPosition();
 		if (Position::distance(posOfUnit, this->pos) <= 2.0 && current->data->isInfantryType()) {
 			int oldScore = current->data->getAttackScore();
-			int newScore = static_cast<int>(ceil(oldScore * 1.0 * 0.9));
+			int newScore = static_cast<int>(ceil(1.0 * oldScore * 0.9));
 			int quantity = current->data->getQuantity();
 			if (quantity > 0) {
 				int newWeight = ceil(1.0 * (newScore - static_cast<int>(current->data->getInfantryType()) * 56) / quantity);
@@ -1039,7 +1027,7 @@ void Urban::getEffect(Army* army) const {
 				int newScore = static_cast<int>(ceil(1.0 * 0.5 * currentScore));
 				int quantity = current->data->getQuantity();
 				if (quantity > 0) {
-					int newWeight = ceil(1.0 * (newScore - ((int)vehicle * 56)) / quantity);
+					int newWeight = ceil(1.0 * (newScore * 30 - ((int)vehicle * 304)) / quantity);
 					current->data->setWeight(newWeight);
 				}
 			}
@@ -1091,7 +1079,7 @@ void Fortification::getEffect(Army* army) const {
 					if (flag) // Infantry
 						newWeight = ceil(1.0 * (newScore - ((int)infantry * 56)) / quantity);
 					else // Vehicle
-						newWeight = ceil(1.0 * (newScore - ((int)vehicle * 56)) / quantity);
+						newWeight = ceil(1.0 * (newScore * 30 - ((int)vehicle * 304)) / quantity);
 					current->data->setWeight(newWeight);
 				}
 			}
@@ -1115,7 +1103,7 @@ void Fortification::getEffect(Army* army) const {
 					if (flag) // Infantry
 						newWeight = ceil(1.0 * (newScore - ((int)infantry * 56)) / quantity);
 					else // Vehicle
-						newWeight = ceil(1.0 * (newScore - ((int)vehicle * 56)) / quantity);
+						newWeight = ceil(1.0 * (newScore * 30 - ((int)vehicle * 304)) / quantity);
 					current->data->setWeight(newWeight);
 				}
 			}
@@ -1615,7 +1603,7 @@ void HCMCampaign::run() {
 		Node* current = (army->getUnitlist()) ? army->getUnitlist()->getHead() : nullptr;
 		Node* prev = nullptr;
 		while (current) {
-			if (current->data && current->data->getAttackScore() <= 5) {
+			if (current->data->getAttackScore() <= 5.0) {
 				Node* toDelete = current;
 				if (!prev) {
 					current = current->next;
@@ -1633,7 +1621,7 @@ void HCMCampaign::run() {
 			prev = current;
 			current = current->next;
 		}
-		};
+	};
 
 	removeWeakUnits(liberationArmy);
 	removeWeakUnits(arvn);
@@ -1645,10 +1633,10 @@ void HCMCampaign::run() {
 
 string HCMCampaign::printResult() const {
 	stringstream ss;
-	ss << "LIBERATIONARMY[LF=" << liberationArmy->getLF()
-		<< ",EXP=" << liberationArmy->getEXP() << "]"
-		<< "-ARVN[LF=" << arvn->getLF()
-		<< ",EXP=" << arvn->getEXP() << "]";
+	ss << "LIBERATIONARMY[LF=" << to_string(liberationArmy->getLF())
+		<< ",EXP=" << to_string(liberationArmy->getEXP()) << "]"
+		<< "-ARVN[LF=" << to_string(arvn->getLF())
+		<< ",EXP=" << to_string(arvn->getEXP()) << "]";
 	return ss.str();
 }
 

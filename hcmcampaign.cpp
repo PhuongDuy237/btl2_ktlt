@@ -100,8 +100,8 @@ int Vehicle::getAttackScore() {
 string Vehicle::str() const {
 	static const string vehicleTypeNames[] = { "TRUCK", "MORTAR", "ANTIAIRCRAFT", "ARMOREDCAR", "APC", "ARTILLERY", "TANK" };
 	stringstream ss;
-	ss << "Vehicle[vehicleType=" << to_string(vehicleTypeNames[static_cast<int>(vehicleType)]) << ",quantity=" << to_string(quantity)
-		<< ",weight=" << to_string(weight) << ",position=" << pos.str() << "]";
+	ss << "Vehicle[vehicleType=" << vehicleTypeNames[static_cast<int>(vehicleType)] << ",quantity=" << quantity
+		<< ",weight=" << weight << ",position=" << pos.str() << "]";
 	return ss.str();
 }
 
@@ -187,8 +187,8 @@ bool Infantry::isVehicleType() const {
 string Infantry::str() const {
 	static const string infantryTypeNames[] = { "SNIPER", "ANTIAIRCRAFTSQUAD", "MORTARSQUAD", "ENGINEER", "SPECIALFORCES", "REGULARINFANTRY" };
 	stringstream ss;
-	ss << "Infantry[infantryType=" << to_string(infantryTypeNames[static_cast<int>(infantryType)]) << ",quantity=" << to_string(quantity)
-		<< ",weight=" << to_string(weight) << ",position=" << pos.str() << "]";
+	ss << "Infantry[infantryType=" << infantryTypeNames[static_cast<int>(infantryType)] << ",quantity=" << quantity
+		<< ",weight=" << weight << ",position=" << pos.str() << "]";
 	return ss.str();
 }
 
@@ -1041,7 +1041,7 @@ void Urban::getEffect(Army* army) const {
 			Position posOfUnit = current->data->getCurrentPosition();
 			double D = Position::distance(posOfUnit, this->pos);
 			InfantryType infantry = current->data->getInfantryType();
-			if (current->data->isInfantryType() && infantry == REGULARINFANTRY) {
+			if (current->data->isInfantryType() && infantry == REGULARINFANTRY && D <= 3.0) {
 				int currentScore = current->data->getAttackScore();
 				int extraScore = static_cast<int>(ceil((1.0 * 3.0 * currentScore) / (2 * D)));
 				int newScore = currentScore + extraScore;
@@ -1645,4 +1645,3 @@ string HCMCampaign::printResult() const {
 ////////////////////////////////////////////////
 /// END OF STUDENT'S ANSWER
 ////////////////////////////////////////////////
-//

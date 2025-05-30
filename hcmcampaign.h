@@ -6,7 +6,7 @@
  * Date: 02.02.2025
  */
 
-// The library here is concretely set, students are not allowed to include any other libraries.
+ // The library here is concretely set, students are not allowed to include any other libraries.
 #ifndef _H_HCM_CAMPAIGN_H_
 #define _H_HCM_CAMPAIGN_H_
 
@@ -64,17 +64,17 @@ enum InfantryType
     REGULARINFANTRY
 };
 
-class Army{
+class Army {
 protected:
     int LF, EXP;
     string name;
-    UnitList *unitList;
-    BattleField *battleField;
+    UnitList* unitList;
+    BattleField* battleField;
 
 public:
     Army();
-    Army(Unit **unitArray, int size, string name, BattleField *battleField);
-    virtual void fight(Army *enemy, bool defense = false) = 0;
+    Army(Unit** unitArray, int size, string name, BattleField* battleField);
+    virtual void fight(Army* enemy, bool defense = false) = 0;
     virtual string str() const = 0;
     virtual ~Army();
     int getLF();
@@ -125,7 +125,7 @@ private:
 
 public:
     Position(int r = 0, int c = 0);
-    Position(const string &str_pos); // Example: str_pos = "(1,15)"
+    Position(const string& str_pos); // Example: str_pos = "(1,15)"
     int getRow() const;
     int getCol() const;
     void setRow(int r);
@@ -176,13 +176,13 @@ private:
 public:
     UnitList(int capacity);
     ~UnitList();
-    bool insert(Unit *unit);                   // return true if insert successfully
+    bool insert(Unit* unit);                   // return true if insert successfully
     bool isContain(VehicleType vehicleType);   // return true if it exists
     bool isContain(InfantryType infantryType); // return true if it exists
     string str() const;
     // TODO
     Node* MakeNode(Unit* unit);
-    static bool isSpecialNum(const int &s);
+    static bool isSpecialNum(const int& s);
     Node* getHead();
     void setHead(Node* newHead);
     bool isUnitExist(Unit* unit);
@@ -196,7 +196,7 @@ class TerrainElement
 public:
     TerrainElement();
     virtual ~TerrainElement();
-    virtual void getEffect(Army *army) const = 0;
+    virtual void getEffect(Army* army) const = 0;
     virtual string str() const = 0;
 };
 
@@ -209,7 +209,7 @@ public:
 };
 
 class Mountain : public TerrainElement {
-private: 
+private:
     Position pos;
 public:
     void getEffect(Army* army) const override;
@@ -255,9 +255,9 @@ private:
     // TODO
     vector<vector<TerrainElement*>> terrain;
 public:
-    BattleField(int n_rows, int n_cols, vector<Position *> arrayForest,
-                vector<Position *> arrayRiver, vector<Position *> arrayFortification,
-                vector<Position *> arrayUrban, vector<Position *> arraySpecialZone);
+    BattleField(int n_rows, int n_cols, vector<Position*> arrayForest,
+        vector<Position*> arrayRiver, vector<Position*> arrayFortification,
+        vector<Position*> arrayUrban, vector<Position*> arraySpecialZone);
     ~BattleField();
     string str() const;
     vector<vector<TerrainElement*>>& getTerrain();
@@ -269,13 +269,13 @@ public:
 class HCMCampaign
 {
 private:
-    Configuration *config;
-    BattleField *battleField;
-    LiberationArmy *liberationArmy;
-    ARVN *arvn;
+    Configuration* config;
+    BattleField* battleField;
+    LiberationArmy* liberationArmy;
+    ARVN* arvn;
 
 public:
-    HCMCampaign(const string &config_file_path);
+    HCMCampaign(const string& config_file_path);
     void run();
     string printResult() const;
 };
@@ -297,7 +297,7 @@ public:
     Unit* clone() const override;
 };
 
-class Infantry : public Unit{
+class Infantry : public Unit {
 private:
     InfantryType infantryType;
 public:
@@ -319,10 +319,10 @@ class Configuration {
 private:
     int num_rows, num_cols;
     vector <Position*> arrayForest,
-                       arrayRiver,
-                       arrayFortification,
-                       arrayUrban,
-                       arraySpecialZone;
+        arrayRiver,
+        arrayFortification,
+        arrayUrban,
+        arraySpecialZone;
     vector<Unit*> liberationUnits;
     vector<Unit*> ARVNUnits;
     int eventCode;

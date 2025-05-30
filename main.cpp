@@ -57,6 +57,7 @@ void g_satc_02() {
     delete[] unitArrayOfLiber;
     delete[] unitArrayOfAr;
 }
+
 void  g_satc_03() {
     cout << "----- Sample Testcase 03 -----" << endl;
     HCMCampaign* campaign = new HCMCampaign("config.txt");

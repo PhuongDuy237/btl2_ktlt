@@ -113,8 +113,6 @@ void g_stac_07()
     unitArrayOfLiber8[3] = &sniperOfLiber2;
     LiberationArmy *liberationArmy8 = new LiberationArmy(unitArrayOfLiber8, 4, "LiberationArmy", 0);
     cout << liberationArmy8->str() << endl;
-
-    Infantry sniperOfLiber2(10, 20, Position(1, 1), SNIPER);
 }
 
 int main(int argc, const char *argv[])

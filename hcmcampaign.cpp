@@ -288,8 +288,6 @@ bool UnitList::insert(Unit* unit) {
 		}
 	}
 	else {
-		// Chen cuoi danh sach cho Vehicle
-		// newNode->next = nullptr;
 		if (!head) {
 			head = MakeNode(unit);
 			return true;
@@ -342,11 +340,6 @@ string UnitList::str()const {
 	Node* current = head;
 
 	while (current) {
-		// if (!current->data) {
-		// 	current = current->next;
-		// 	continue;
-		// }
-
 		if (current->data->isVehicleType())
 			numOfVeh++;
 
@@ -393,12 +386,6 @@ void UnitList::remove(Unit* unit) {
 	head->next = head->next->next;
 	delete xoa;
 }
-
-// void UnitList::add(Unit* unit) {
-// 	Node* newNode = new Node(unit);
-// 	newNode->next = head;
-// 	head = newNode;
-// }
 
 // Bai 3.4 Quan doi
 Army::Army() : unitList(nullptr), battleField(nullptr), name(""), LF(0), EXP(0) {}
@@ -457,15 +444,6 @@ void Army::updateState() {
 	int sum = LF + EXP;
 	this->unitList->set_capacity(UnitList::isSpecialNum(sum) ? 12 : 8);
 }
-
-
-// void Army::updateState(Unit** unitArray, int size) {
-// 	int sum = LF + EXP;
-// 	int capacity = UnitList::isSpecialNum(sum) ? 12 : 8;
-
-// 	if (unitList) delete unitList;
-
-// }
 
 Army::~Army() {
 	delete unitList;
@@ -548,27 +526,6 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 				current = current->next;
 			}
 			this->updateState();
-			// this->updateLFandEXP();
-			// double fightLF = LF * 1.3;
-			// double fightEXP = EXP * 1.3;
-			// bool isLFgreater = fightLF >= enemy->getLF();
-			// bool isEXPgreater = fightEXP >= enemy->getEXP();
-			// if (isLFgreater && isEXPgreater) {
-			// 	win = true;
-			// 	needRepeat = false;
-			// }
-			// else if (isLFgreater || isEXPgreater) {
-			// 	// xu li giam 10% nhu cu
-			// 	Node* current = unitList->getHead();
-			// 	while (current != nullptr) {
-			// 		int q = current->data->getQuantity();
-			// 		current->data->setQuantity(ceil(q * 0.9));
-			// 		current = current->next;
-			// 	}
-			// 	this->updateLFandEXP();
-			// 	needRepeat = false;
-			// }
-			// Neu van thua -> chi vien tiep
 		}
 
 	}
@@ -605,15 +562,6 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 			for (Unit* unit : subsetB) {
 				unitList->remove(unit);
 			}
-			// current = enemy->getUnitlist()->getHead();
-			// while (current != nullptr) {
-			// 	if (!current->data->isDestroyed()) {
-			// 		mergeUnits(current->data);
-			// 	}
-			// 	current->data->destroy();
-			// 	current = current->next;
-			// }
-			// updateLFandEXP();
 		}
 		else if (!subsetA.empty() || !subsetB.empty()) {
 			if (!subsetA.empty() && subsetB.empty()) {
@@ -629,28 +577,11 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 					for (Unit* unit : subsetA) {
 						unitList->remove(unit);
 					}
-					// current = enemy->getUnitlist()->getHead();
-					// while (current != nullptr) {
-					// 	if (!current->data->isDestroyed()) {
-					// 		mergeUnits(current->data);
-					// 	}
-					// 	current->data->destroy();
-					// 	current = current->next;
-					// }
 					updateLFandEXP();
 				}
 				else {
 					win = false;
 					war = false;
-					// current = unitList->getHead();
-					// while (current != nullptr) {
-					// 	if (!current->data->isDestroyed()) {
-					// 		int w = current->data->getWeight();
-					// 		current->data->setWeight(static_cast<int>(w * 0.9));
-					// 	}
-					// 	current = current->next;
-					// }
-					// updateLFandEXP();
 				}
 			}
 			else {
@@ -666,43 +597,16 @@ void LiberationArmy::fight(Army* enemy, bool defense) {
 					for (Unit* unit : subsetB) {
 						unitList->remove(unit);
 					}
-					// current = enemy->getUnitlist()->getHead();
-					// while (current != nullptr) {
-					// 	if (!current->data->isDestroyed()) {
-					// 		mergeUnits(current->data);
-					// 	}
-					// 	current->data->destroy();
-					// 	current = current->next;
-					// }
-					// updateLFandEXP();
 				}
 				else {
 					win = false;
 					war = false;
-					// current = unitList->getHead();
-					// while (current != nullptr) {
-					// 	if (!current->data->isDestroyed()) {
-					// 		int w = current->data->getWeight();
-					// 		current->data->setWeight(static_cast<int>(w * 0.9));
-					// 	}
-					// 	current = current->next;
-					// }
-					// updateLFandEXP();
 				}
 			}
 		}
 		else {
 			win = false;
 			war = false;
-			// current = unitList->getHead();
-			// while (current != nullptr) {
-			// 	if (!current->data->isDestroyed()) {
-			// 		int w = current->data->getWeight();
-			// 		current->data->setWeight(static_cast<int>(w * 0.9));
-			// 	}
-			// 	current = current->next;
-			// }
-			// updateLFandEXP();
 		}
 
 		if (win && war) {

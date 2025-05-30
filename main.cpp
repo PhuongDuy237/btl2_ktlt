@@ -8,6 +8,8 @@
 
 //The library here is concretely set, students are not allowed to include any other libraries.
 
+//g++ -o main main.cpp hcmcampaign.cpp -I . -std=c++11
+
 #include "hcmcampaign.h"
 
 using namespace std;
@@ -57,7 +59,6 @@ void g_satc_02() {
     delete[] unitArrayOfLiber;
     delete[] unitArrayOfAr;
 }
-
 void  g_satc_03() {
     cout << "----- Sample Testcase 03 -----" << endl;
     HCMCampaign* campaign = new HCMCampaign("config.txt");
@@ -67,6 +68,52 @@ void  g_satc_03() {
     campaign->run();
     cout << campaign->printResult() << endl;
     delete campaign;
+}
+
+void g_satc_04() {
+----- Sample Testcase 04 -----
+num_rows = 10, num_cols = 8
+
+arrayForest = [(1, 2), (3, 5)]
+arrayRiver = [(0, 0), (0, 4)]
+arrayFortification = [(6, 6)]
+arrayUrban = [(2, 0)]
+arraySpecialZone = [(9, 7)]
+
+liberationUnits = [
+    Vehicle[vehicleType=TANK, quantity=5, weight=2, position=(1, 2)],
+    Infantry[infantryType=REGULARINFANTRY, quantity=5, weight=2, position=(1, 1)]
+]
+
+ARVNUnits = [
+    Vehicle[vehicleType=TANK, quantity=5, weight=2, position=(3, 2)],
+    Infantry[infantryType=REGULARINFANTRY, quantity=5, weight=2, position=(3, 3)]
+]
+
+eventCode = 23
+}
+
+void g_satc_05(){
+----- Sample Testcase 05 -----
+Vehicle[vehicleType=MORTAR,quantity=20,weight=20,position=(1,2)]
+}
+
+void g_stac_06(){
+----- Sample Testcase 06 -----
+LiberationArmy[LF=0,EXP=0,unitList=UnitList[count_vehicle=0;count_infantry=0],battleField=]
+}
+
+void g_stac_07(){
+----- Sample Testcase 07 -----
+LiberationArmy[
+    LF=38, EXP=400,
+    unitList=UnitList[
+        count_vehicle=1; count_infantry=1;
+        Infantry[infantryType=SNIPER, quantity=24, weight=20, position=(1, 0)],
+        Vehicle[vehicleType=MORTAR, quantity=25, weight=20, position=(1, 2)]
+    ],
+    battleField=
+]
 }
 
 int main(int argc, const char * argv[]) {
